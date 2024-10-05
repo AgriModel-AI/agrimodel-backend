@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-from routes import *
+from routes import authBlueprint, mail
 from config import DevelopmentConfig
 from models import db
 

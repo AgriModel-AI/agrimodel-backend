@@ -5,9 +5,9 @@ from sqlalchemy.orm import relationship
 
 class User(db.Model):
     __tablename__ = 'users'
-    userId = db.Column(db.Integer, primary_key=True)
+    userId = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(120), nullable=False)
+    password = db.Column(db.Text, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     phone_number = db.Column(db.String(20), unique=True, nullable=False)
     profilePicture = db.Column(db.String(255))
@@ -21,3 +21,4 @@ class User(db.Model):
     diagnosisResults = relationship('DiagnosisResult', backref='user', lazy=True)
     notifications = relationship('Notification', backref='user', lazy=True)
     user_communities = relationship('UserCommunity', backref='user', lazy=True)
+    details = relationship('UserDetails', backref='user', lazy=True)

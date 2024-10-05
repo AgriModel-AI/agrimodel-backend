@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 
 class VerificationCode(db.Model):
     __tablename__ = 'verification_codes'
-    codeId = db.Column(db.Integer, primary_key=True)
+    codeId = db.Column(db.Integer, primary_key=True, autoincrement=True)
     userId = db.Column(db.Integer, db.ForeignKey('users.userId'), nullable=False)
     code = db.Column(db.String(6), nullable=False)
     createdAt = db.Column(db.DateTime, default=datetime.utcnow)

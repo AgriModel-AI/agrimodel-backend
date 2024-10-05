@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 
 class Disease(db.Model):
     __tablename__ = 'diseases'
-    diseaseId = db.Column(db.Integer, primary_key=True)
+    diseaseId = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text)
     symptoms = db.Column(db.Text)

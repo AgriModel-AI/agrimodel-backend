@@ -9,3 +9,4 @@ from .Post import Post
 from .User import User
 from .UserCommunity import UserCommunity
 from .VerificationCode import VerificationCode
+from .UserDetails import UserDetails

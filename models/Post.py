@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 
 class Post(db.Model):
     __tablename__ = 'posts'
-    postId = db.Column(db.Integer, primary_key=True)
+    postId = db.Column(db.Integer, primary_key=True, autoincrement=True)
     content = db.Column(db.Text, nullable=False)
     createdAt = db.Column(db.DateTime, default=datetime.utcnow)
     likes = db.Column(db.Integer, default=0)
