@@ -19,6 +19,16 @@ class Config:
     MAIL_USE_TLS = False
     MAIL_USE_SSL = True
 
+    # Image upload configurations
+    UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'static/uploads')  # Default folder for uploads
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max upload size
+    ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}  # Allowed image types
+
+    @staticmethod
+    def allowed_file(filename):
+        """Check if the uploaded file has a valid extension."""
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_IMAGE_EXTENSIONS
+
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")

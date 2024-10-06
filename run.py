@@ -1,16 +1,21 @@
+import os
 from flask import Flask, jsonify
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-from routes import authBlueprint, mail
+from routes import authBlueprint, mail, userDetailsBlueprint, communityBlueprint
 from config import DevelopmentConfig
 from models import db
+from cli_commands import register_cli
 
 migrate = Migrate()
 jwt = JWTManager()
 
 def create_app(config_class=DevelopmentConfig):
     app = Flask(__name__)
-    app.config.from_object(config_class)\
+    app.config.from_object(config_class)
+
+    if not os.path.exists(config_class.UPLOAD_FOLDER):
+        os.makedirs(config_class.UPLOAD_FOLDER)
 
     # Register global error handler
     @app.errorhandler(404)
@@ -51,6 +56,10 @@ def create_app(config_class=DevelopmentConfig):
     mail.init_app(app)
 
     app.register_blueprint(authBlueprint)
+    app.register_blueprint(userDetailsBlueprint)
+    app.register_blueprint(communityBlueprint)
+
+    register_cli(app)
 
     return app
 

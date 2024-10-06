@@ -2,7 +2,7 @@ from flask_restful import Resource, abort
 from models import User
 from flask import request
 from werkzeug.security import check_password_hash
-from flask_jwt_extended import create_access_token, create_refresh_token
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
 
 class LoginResource(Resource):
 
@@ -38,8 +38,16 @@ class LoginResource(Resource):
             abort(403, message="Your account is blocked.")
 
         # Generate JWT tokens
-        access_token = create_access_token(identity=user.userId)
-        refresh_token = create_refresh_token(identity=user.userId)
+        user_identity = {
+            "userId": user.userId,
+            "email": user.email,
+            "username": user.username,
+            "role": user.role
+        }
+
+        # Generate JWT tokens with the additional information
+        access_token = create_access_token(identity=user_identity)
+        refresh_token = create_refresh_token(identity=user_identity)
 
         return {
             "message": "Login successful.",
