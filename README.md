@@ -48,7 +48,7 @@ Make sure you have the following installed on your system:
 1. Clone the Agri-modal project from GitHub:
 
     ```bash
-    git clone https://github.com/MugAbdoul/Agri-modal
+    git clone https://github.com/AgriModel-AI/agrimodel-backend
     ```
 
 2. Navigate into the project directory:
