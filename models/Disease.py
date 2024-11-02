@@ -17,3 +17,16 @@ class Disease(db.Model):
 
     # Relationships
     diagnosisResults = relationship('DiagnosisResult', backref='disease', lazy=True)
+    
+    def serialize(self):
+        return {
+            "diseaseId": self.diseaseId,
+            "name": self.name,
+            "description": self.description,
+            "symptoms": self.symptoms,
+            "treatment": self.treatment,
+            "prevention": self.prevention,
+            "images": self.images.split(",") if self.images else [],
+            "relatedDiseases": self.relatedDiseases.split(",") if self.relatedDiseases else [],
+            "createdAt": self.createdAt.isoformat(),
+        }

@@ -79,7 +79,7 @@ class ResendCodeResource(Resource):
             return {"message": "This account is already verified."}, 400
 
         # Generate a new 6-digit verification code
-        verification_code = str(random.randint(100000, 999999))
+        verification_code = str(random.randint(1000, 9999))
 
         # Create or update verification code entry
         verification_entry = VerificationCode.query.filter_by(userId=user.userId).first()

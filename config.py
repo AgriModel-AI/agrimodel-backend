@@ -18,12 +18,17 @@ class Config:
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER')
     MAIL_USE_TLS = False
     MAIL_USE_SSL = True
+    
+    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
 
     # Image upload configurations
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'static/uploads')  # Default folder for uploads
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max upload size
     ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}  # Allowed image types
-
+    BASE_UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+    DISEASES_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, 'diseases')
+    
     @staticmethod
     def allowed_file(filename):
         """Check if the uploaded file has a valid extension."""
@@ -43,3 +48,7 @@ config = {
     "testing": TestingConfig,
     "default": DevelopmentConfig
 }
+
+
+os.makedirs(Config.BASE_UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(Config.DISEASES_UPLOAD_FOLDER, exist_ok=True)

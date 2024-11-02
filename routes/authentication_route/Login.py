@@ -1,13 +1,17 @@
+import os
+import pathlib
 from flask_restful import Resource, abort
+import requests
+from config import Config
 from models import User
-from flask import request
+from flask import redirect, request, session
 from werkzeug.security import check_password_hash
-from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
+from flask_jwt_extended import create_access_token, create_refresh_token
+
 
 class LoginResource(Resource):
-
     def post(self):
-        """Function to log in the user and return JWT tokens."""
+        """Standard login for users who registered with email and password."""
         
         required_fields = ["email", "password"]
         for field in required_fields:
@@ -17,11 +21,18 @@ class LoginResource(Resource):
         email = request.json["email"]
         password = request.json["password"]
 
-        # Fetch the user based on the provided email
+        # Fetch the user based on the provided email and ensure it's a local login
         user = User.query.filter_by(email=email).first()
         
         if not user:
             abort(400, message="Invalid credentials: user not found.")
+        
+        # Check if the user registered with Google auth
+        if user.authProvider == "google":
+            abort(400, message="This email is linked with Google. Please log in via Google authentication.")
+        
+        if not user:
+            abort(400, message="Invalid credentials: user not found or not registered locally.")
         
         # Check password validity
         if not check_password_hash(user.password, password):
@@ -37,7 +48,7 @@ class LoginResource(Resource):
         if user.isBlocked:
             abort(403, message="Your account is blocked.")
 
-        # Generate JWT tokens
+        # Generate JWT tokens with user identity
         user_identity = {
             "userId": user.userId,
             "email": user.email,
@@ -45,7 +56,6 @@ class LoginResource(Resource):
             "role": user.role
         }
 
-        # Generate JWT tokens with the additional information
         access_token = create_access_token(identity=user_identity)
         refresh_token = create_refresh_token(identity=user_identity)
 

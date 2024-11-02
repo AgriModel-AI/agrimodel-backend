@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import abort, request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import UserDetails, db
+from models import UserDetails, db, User
 
 class UserDetailsResource(Resource):
 
@@ -15,22 +15,35 @@ class UserDetailsResource(Resource):
         userId = int(user_identity["userId"]) if isinstance(user_identity, dict) else user_identity
 
         # Fetch user details based on userId
-        user_details = UserDetails.query.filter_by(userId=userId).first()
-        
-        if not user_details:
-            return {"message": "User details not found."}, 404
+        result = (
+            db.session.query(User, UserDetails)
+            .outerjoin(UserDetails, User.userId == UserDetails.userId)
+            .filter(User.userId == userId)
+            .first()
+        )
 
-        # Convert date of birth (dob) to string (ISO format)
-        dob_str = user_details.dob.isoformat() if user_details.dob else None
+        # Check if the user exists
+        if not result:
+            return {"message": "User not found."}, 404
+
+        user, user_details = result
+
+        # Convert date of birth (dob) to string (ISO format) if present
+        dob_str = user_details.dob.isoformat() if user_details and user_details.dob else None
 
         return {
-            "userId": user_details.userId,
-            "names": user_details.names,
-            "national_id": user_details.national_id,
-            "city": user_details.city,
-            "address": user_details.address,
+            "userId": user.userId,
+            "username": user.username,
+            "email": user.email,
+            "phone_number": user.phone_number,
+            "profilePicture": user.profilePicture,
+            "role": user.role,
+            "names": user_details.names if user_details else None,
+            "national_id": user_details.national_id if user_details else None,
+            "city": user_details.city if user_details else None,
+            "address": user_details.address if user_details else None,
             "dob": dob_str,
-            "gender": user_details.gender
+            "gender": user_details.gender if user_details else None
         }, 200
 
 

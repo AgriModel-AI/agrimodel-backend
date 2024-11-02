@@ -72,7 +72,7 @@ class SignupResource(Resource):
             db.session.commit()
 
             # Generate a 6-digit verification code
-            verification_code = str(random.randint(100000, 999999))
+            verification_code = str(random.randint(1000, 9999))
 
             # Create verification code entry
             code_entry = VerificationCode(

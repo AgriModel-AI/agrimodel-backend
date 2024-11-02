@@ -22,8 +22,7 @@ class PasswordResetResource(Resource):
         if not user:
             abort(400, message="Email not found.")
 
-        # Generate a unique token for password reset
-        token = str(random.randint(100000, 999999))  # Simple example; consider using a more secure method
+        token = str(random.randint(1000, 9999))
 
         # Set token expiration (e.g., 1 hour from now)
         expires_at = datetime.utcnow() + timedelta(hours=1)
