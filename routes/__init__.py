@@ -6,3 +6,4 @@ from .disease_route import diseaseBlueprint
 from .notification_route.notification import notificationBlueprint
 from .userDetails_route import userDetailsBlueprint
 from .community_route import communityBlueprint
+from .clients_route import clientsBlueprint
