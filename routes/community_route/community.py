@@ -3,7 +3,8 @@ import uuid
 from flask import current_app, make_response, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource
-from models import Community, db, User
+from sqlalchemy import func
+from models import Community, Post, UserCommunity, db, User
 from werkzeug.utils import secure_filename
 import os
 
@@ -25,15 +26,20 @@ class CommunityListResource(Resource):
         
         # Perform a join to get community data along with user details
         communities = db.session.query(
-            Community.communityId, 
-            Community.name, 
-            Community.image, 
-            Community.description, 
-            Community.createdAt, 
-            User.userId.label('creator_id'), 
-            User.username.label('creator_username'), 
-            User.email.label('creator_email')
-        ).join(User, Community.createdBy == User.userId).all()
+            Community.communityId,
+            Community.name,
+            Community.image,
+            Community.description,
+            Community.createdAt,
+            User.username.label('creator_username'),
+            User.email.label('creator_email'),
+            func.count(UserCommunity.userId).label('user_count'),   # Count of users in the community
+            func.count(Post.postId).label('post_count')             # Count of posts in the community
+        ).join(User, Community.createdBy == User.userId) \
+         .outerjoin(UserCommunity, Community.communityId == UserCommunity.communityId) \
+         .outerjoin(Post, Community.communityId == Post.communityId) \
+         .group_by(Community.communityId, User.userId) \
+         .all()
 
         # Format the results
         data = []
@@ -44,11 +50,12 @@ class CommunityListResource(Resource):
                 "image": community.image,
                 "description": community.description,
                 "createdBy": {
-                    "userId": community.creator_id,
                     "username": community.creator_username,
                     "email": community.creator_email
                 },
-                "createdAt": community.createdAt.isoformat()
+                "createdAt": community.createdAt.isoformat(),
+                "users": community.user_count,
+                "posts": community.post_count
             })
 
         return {"data": data}, 200

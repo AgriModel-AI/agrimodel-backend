@@ -10,6 +10,7 @@ from .community import CommunityListResource, CommunityResource, CommunityImageR
 from .post import PostListResource, PostResource, PostLikeResource
 from .comment import CommentResource, CommentListResource
 from .userCommunity import UserCommunityResource
+from .communityGetImageResource import CommunityGetImageResource
 
 
 # Add login and signup resources
@@ -22,3 +23,5 @@ communityApi.add_resource(PostResource, '/post/<int:postId>')
 communityApi.add_resource(PostLikeResource, '/post/<int:postId>/like')
 communityApi.add_resource(CommentResource, '/post/<int:postId>/comment')
 communityApi.add_resource(CommentListResource, '/post/comment/<int:commentId>')
+
+communityApi.add_resource(CommunityGetImageResource, "/image/<string:filename>")
