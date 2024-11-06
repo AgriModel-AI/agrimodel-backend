@@ -22,7 +22,7 @@ def create_app(config_class=DevelopmentConfig):
         os.makedirs(config_class.UPLOAD_FOLDER)
         
     # CORS(app, resources={r"*": {"origins": "*"}}, supports_credentials=True)
-    CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, methods=["GET", "DELETE","POST", "PATCH","OPTIONS"], allow_headers=["Content-Type", "Authorization"], supports_credentials=True)
+    CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, methods=["GET", "DELETE","POST", "PUT", "PATCH","OPTIONS"], allow_headers=["Content-Type", "Authorization"], supports_credentials=True)
 
 
     # Register global error handler
