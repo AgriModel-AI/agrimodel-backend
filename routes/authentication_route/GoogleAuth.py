@@ -70,7 +70,7 @@ class CallbackResource(Resource):
                     password=None,  # Assuming this is a Google signup, password can be None
                     phone_number=None,  # If not provided, this can also be None
                     profilePicture=profile_picture,
-                    role="user",  # Set default role
+                    role="farmer",  # Set default role
                     isVerified=True,
                     googleId = google_id,
                     authProvider="google"

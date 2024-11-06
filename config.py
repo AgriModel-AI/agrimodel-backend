@@ -28,6 +28,7 @@ class Config:
     ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}  # Allowed image types
     BASE_UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
     DISEASES_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, 'diseases')
+    COMMUNITY_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, 'communities')
     
     @staticmethod
     def allowed_file(filename):
@@ -52,3 +53,4 @@ config = {
 
 os.makedirs(Config.BASE_UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(Config.DISEASES_UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(Config.COMMUNITY_UPLOAD_FOLDER, exist_ok=True)

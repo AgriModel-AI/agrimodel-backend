@@ -6,7 +6,7 @@ communityApi = Api(communityBlueprint)
 
 
 # Import and register resources
-from .community import CommunityListResource, CommunityResource
+from .community import CommunityListResource, CommunityResource, CommunityImageResource
 from .post import PostListResource, PostResource, PostLikeResource
 from .comment import CommentResource, CommentListResource
 from .userCommunity import UserCommunityResource
@@ -16,6 +16,7 @@ from .userCommunity import UserCommunityResource
 communityApi.add_resource(CommunityListResource, "")
 communityApi.add_resource(UserCommunityResource, "/user-community/<int:communityId>")
 communityApi.add_resource(CommunityResource, '/<int:communityId>')
+communityApi.add_resource(CommunityImageResource, '/<int:communityId>/image')
 communityApi.add_resource(PostListResource, '/<int:communityId>/post')
 communityApi.add_resource(PostResource, '/post/<int:postId>')
 communityApi.add_resource(PostLikeResource, '/post/<int:postId>/like')
