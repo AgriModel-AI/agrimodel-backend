@@ -8,8 +8,10 @@ clientsApi = Api(clientsBlueprint)
 # Import and register resources
 from .clientList import ClientResource
 from .clientPatch import ClientPatchResource
+from .CreateAdminUser import CreateAdminUser
 
 
 # Add login and signup resources
 clientsApi.add_resource(ClientResource, "")
 clientsApi.add_resource(ClientPatchResource, "/<int:user_id>")
+clientsApi.add_resource(CreateAdminUser, "/admin/create")

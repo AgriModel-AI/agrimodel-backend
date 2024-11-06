@@ -12,6 +12,7 @@ from .ValidateCode import ResendCodeResource
 from .Login import LoginResource
 from .passwordResetRequest import PasswordResetResource, VerifyPasswordResetResource
 from .GoogleAuth import GoogleLoginResource, CallbackResource
+from .GoogleAuth import GoogleLoginResource, CallbackResource
 
 # Add login and signup resources
 authApi.add_resource(SignupResource, "/signup")

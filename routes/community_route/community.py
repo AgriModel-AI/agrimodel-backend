@@ -161,18 +161,21 @@ class CommunityResource(Resource):
 
         try:
             community = Community.query.get(communityId)
-            
             if not community:
                 return {"message": "Community not found."}, 404
-        
+
+            Post.query.filter_by(communityId=communityId).delete()
+            
+            UserCommunity.query.filter_by(communityId=communityId).delete()
+
             db.session.delete(community)
             db.session.commit()
 
             return {"message": "Community deleted successfully."}, 200
-
+        
         except Exception as e:
             db.session.rollback()
-            return {"message": "An error occurred while trying to delete the community. Please try again later."}, 500
+            return {"message": "An error occurred while deleting the community.", "error": str(e)}, 500
 
 class CommunityImageResource(Resource):
     
