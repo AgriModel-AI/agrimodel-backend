@@ -2,7 +2,7 @@ import os
 from flask import Flask, jsonify
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-from routes import authBlueprint, mail, userDetailsBlueprint, communityBlueprint, diseaseBlueprint, clientsBlueprint
+from routes import authBlueprint, mail, socketio, userDetailsBlueprint, communityBlueprint, diseaseBlueprint, clientsBlueprint, supportBlueprint
 from config import DevelopmentConfig
 from models import db
 from cli_commands import register_cli
@@ -10,6 +10,7 @@ from flask_cors import CORS
 
 migrate = Migrate()
 jwt = JWTManager()
+
 
 def create_app(config_class=DevelopmentConfig):
     app = Flask(__name__)
@@ -21,9 +22,7 @@ def create_app(config_class=DevelopmentConfig):
     if not os.path.exists(config_class.UPLOAD_FOLDER):
         os.makedirs(config_class.UPLOAD_FOLDER)
         
-    # CORS(app, resources={r"*": {"origins": "*"}}, supports_credentials=True)
     CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, methods=["GET", "DELETE","POST", "PUT", "PATCH","OPTIONS"], allow_headers=["Content-Type", "Authorization"], supports_credentials=True)
-
 
     # Register global error handler
     @app.errorhandler(404)
@@ -62,12 +61,14 @@ def create_app(config_class=DevelopmentConfig):
     migrate.init_app(app, db)
     jwt.init_app(app)
     mail.init_app(app)
+    socketio.init_app(app, cors_allowed_origins="*")
 
     app.register_blueprint(authBlueprint)
     app.register_blueprint(userDetailsBlueprint)
     app.register_blueprint(communityBlueprint)
     app.register_blueprint(diseaseBlueprint)
     app.register_blueprint(clientsBlueprint)
+    app.register_blueprint(supportBlueprint)
 
     register_cli(app)
 
@@ -76,4 +77,5 @@ def create_app(config_class=DevelopmentConfig):
 
 if __name__ == "__main__":
     app = create_app()
-    app.run()
+    # app.run()
+    socketio.run(app, debug=True)

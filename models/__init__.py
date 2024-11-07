@@ -10,3 +10,4 @@ from .User import User
 from .UserCommunity import UserCommunity
 from .VerificationCode import VerificationCode
 from .UserDetails import UserDetails
+from .SupportRequest import SupportRequestType, SupportRequest, SupportRequestStatus
