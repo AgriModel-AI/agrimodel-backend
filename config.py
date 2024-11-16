@@ -10,7 +10,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=45)
-    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=60)
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 465
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
@@ -29,6 +29,7 @@ class Config:
     BASE_UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
     DISEASES_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, 'diseases')
     COMMUNITY_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, 'communities')
+    PROFILE_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, 'profiles')
     
     @staticmethod
     def allowed_file(filename):
@@ -54,3 +55,4 @@ config = {
 os.makedirs(Config.BASE_UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(Config.DISEASES_UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(Config.COMMUNITY_UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(Config.PROFILE_UPLOAD_FOLDER, exist_ok=True)

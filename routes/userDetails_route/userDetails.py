@@ -1,9 +1,31 @@
 from datetime import datetime
-from flask import abort, request
+import os
+import re
+import uuid
+from flask import abort, current_app, request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import UserDetails, db, User
+from werkzeug.utils import secure_filename
+from dotenv import load_dotenv
+load_dotenv()
 
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+# Utility function to check if a file is an allowed image type
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Helper validation functions
+def validate_required_field(value, field_name):
+    if not value or not value.strip():
+        abort(400, message=f"{field_name} is required.")
+
+def validate_min_length(value, field_name, min_length):
+    if len(value.strip()) < min_length:
+        abort(400, message=f"{field_name} must be at least {min_length} characters long.")
+        
 class UserDetailsResource(Resource):
 
     @jwt_required()
@@ -49,129 +71,99 @@ class UserDetailsResource(Resource):
 
     @jwt_required()
     def post(self):
-        """Create user details for the authenticated user with validation."""
+        """Create or update user details for the authenticated user."""
         user_identity = get_jwt_identity()  # Extract userId from JWT
         userId = int(user_identity["userId"])
 
-        if UserDetails.query.filter_by(userId=userId).first():
-            return {"message": "User details already exist."}, 400
+        # Check if user details already exist
+        user_details = UserDetails.query.filter_by(userId=userId).first()
+        user = User.query.get(userId)
 
-        data = request.json
-        
-        # Validate required fields
-        required_fields = ["names", "national_id"]
+        if not user:
+            return {"message": "User not found."}, 404
+
+        data = request.form  # Use form data for file upload
+        files = request.files
+
+        # Validate required fields for create or update
+        required_fields = ["names", "national_id", "city", "address", "dob", "gender", "phone_number"]
         for field in required_fields:
             if field not in data or not data[field].strip():
-                abort(400, message=f"Field '{field}' is required and cannot be empty.")
+                abort(400, description=f"Field '{field}' is required and cannot be empty.")
 
-        # Validate names (string and length)
-        names = data["names"]
-        if not isinstance(names, str) or len(names) < 2:
-            abort(400, message="Invalid 'names': must be a string with at least 2 characters.")
-
-        # Validate national_id (string and unique)
+        # Validate national_id length
         national_id = data["national_id"]
-        if not isinstance(national_id, str) or len(national_id) < 10:
-            abort(400, message="Invalid 'national_id': must be a string with at least 10 characters.")
-        if UserDetails.query.filter_by(national_id=national_id).first():
-            abort(400, message="The provided national ID already exists.")
+        if len(national_id) != 16:
+            abort(400, description="Invalid national ID. It must be exactly 16 characters long.")
 
-        # Optional fields validation
-        city = data.get("city")
-        if city and not isinstance(city, str):
-            abort(400, message="Invalid 'city': must be a string.")
+        # Validate phone_number using regex
+        phone_number = data["phone_number"]
+        if not re.match(r"\+250\d{9}", phone_number):
+            abort(400, description="Invalid phone number format. It should be in the format: +250700000000")
 
-        address = data.get("address")
-        if address and not isinstance(address, str):
-            abort(400, message="Invalid 'address': must be a string.")
-
-        # Validate dob (date)
-        dob = data.get("dob")
-        if dob:
-            try:
-                dob = datetime.strptime(dob, "%Y-%m-%d").date()
-            except ValueError:
-                abort(400, message="Invalid 'dob': must be in 'YYYY-MM-DD' format.")
-
-        # Validate gender (optional but must be either 'Male', 'Female', or others)
-        gender = data.get("gender")
-        if gender and gender not in ["Male", "Female", "Other"]:
-            abort(400, message="Invalid 'gender': must be 'Male', 'Female', or 'Other'.")
-
-        # Create and save user details
+        # Validate dob format
+        dob = data["dob"]
         try:
-            user_details = UserDetails(
-                userId=userId,
-                names=names,
-                national_id=national_id,
-                city=city,
-                address=address,
-                dob=dob,
-                gender=gender
-            )
-            db.session.add(user_details)
+            dob_date = datetime.strptime(dob, "%Y-%m-%d").date()
+        except ValueError:
+            abort(400, description="Invalid date of birth. It must be in 'yyyy-mm-dd' format.")
+
+        # Validate gender
+        gender = data["gender"].lower()
+        if gender not in ["male", "female"]:
+            abort(400, description="Invalid gender. It must be either 'male' or 'female'.")
+
+        # Handle profile image upload (optional)
+        profile_image = files.get("profilePicture")
+        profile_image_path = None
+        unique_filename = None
+        if profile_image:
+            if allowed_file(profile_image.filename):
+                filename = secure_filename(profile_image.filename)
+                unique_filename = f"{uuid.uuid4()}_{filename}"
+                profile_image_path = os.path.join(
+                    current_app.config["PROFILE_UPLOAD_FOLDER"], unique_filename
+                )
+                profile_image.save(profile_image_path)
+            else:
+                abort(400, description="Invalid profile picture format. Allowed: png, jpg, jpeg, gif.")
+
+        try:
+            if not user_details:
+                # Create new user details
+                user_details = UserDetails(
+                    userId=userId,
+                    names=data["names"],
+                    national_id=national_id,
+                    city=data["city"],
+                    address=data["address"],
+                    dob=dob_date,
+                    gender=gender,
+                )
+                db.session.add(user_details)
+                message = "User details created successfully."
+            else:
+                # Update existing user details
+                user_details.names = data["names"]
+                user_details.national_id = national_id
+                user_details.city = data["city"]
+                user_details.address = data["address"]
+                user_details.dob = dob_date
+                user_details.gender = gender
+                message = "User details updated successfully."
+                
+
+            # Update User's profile picture and phone_number (if provided)
+            if profile_image_path:
+                backend_url = os.getenv("BACKEND_URL")
+                user.profilePicture = f"{backend_url}api/v1/user-details/profile-image/{unique_filename}"
+            user.phone_number = phone_number
+
+            # Commit changes
             db.session.commit()
 
-            return {"message": "User details created successfully."}, 201
+            return {"message": message}, 200 if user_details else 201
 
         except Exception as e:
-            abort(500, message=str(e))
+            abort(500, description=str(e))
 
-    
-    @jwt_required()
-    def patch(self):
-        """Update user details for the authenticated user with validation."""
-        user_identity = get_jwt_identity()  # Extract userId from JWT
-        userId = int(user_identity['userId'])
-        
-        user_details = UserDetails.query.filter_by(userId=userId).first()
-
-        if not user_details:
-            return {"message": "User details not found."}, 404
-
-        data = request.json
-
-        # Validate fields before updating
-        if "names" in data:
-            names = data['names']
-            if not isinstance(names, str) or len(names) < 2:
-                abort(400, description="Invalid 'names': must be a string with at least 2 characters.")
-            user_details.names = names
-
-        if "national_id" in data:
-            national_id = data['national_id']
-            if not isinstance(national_id, str) or len(national_id) < 10:
-                abort(400, description="Invalid 'national_id': must be a string with at least 10 characters.")
-            user_details.national_id = national_id
-
-        if "city" in data:
-            city = data['city']
-            if city and not isinstance(city, str):
-                abort(400, description="Invalid 'city': must be a string.")
-            user_details.city = city
-
-        if "address" in data:
-            address = data['address']
-            if address and not isinstance(address, str):
-                abort(400, description="Invalid 'address': must be a string.")
-            user_details.address = address
-
-        if "dob" in data:
-            dob = data.get("dob")
-            if dob:
-                try:
-                    dob = datetime.strptime(dob, "%Y-%m-%d").date()
-                except ValueError:
-                    abort(400, description="Invalid 'dob': must be in 'YYYY-MM-DD' format.")
-                user_details.dob = dob
-
-        if "gender" in data:
-            gender = data['gender']
-            if gender and gender not in ["Male", "Female", "Other"]:
-                abort(400, description="Invalid 'gender': must be 'Male', 'Female', or 'Other'.")
-            user_details.gender = gender
-        
-        # Commit the updates
-        db.session.commit()
-
-        return {"message": "User details updated successfully."}, 200

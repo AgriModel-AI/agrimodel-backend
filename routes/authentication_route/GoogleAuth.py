@@ -1,15 +1,18 @@
 import os
 import pathlib
+import uuid
 from flask_restful import Resource, abort
 import requests
 from config import Config
 from models import User, db
-from flask import Response, json, jsonify, request
-from werkzeug.security import check_password_hash
-from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
+from flask import current_app, jsonify, request
+from flask_jwt_extended import create_access_token, create_refresh_token
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests 
 from flask import redirect, request, session
+from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
+load_dotenv()
 
 
 from google.oauth2 import id_token
@@ -18,11 +21,13 @@ from pip._vendor import cachecontrol
 import google.auth.transport.requests
 
 
+frontend_url = os.getenv("FRONTEND_URL")
+backend_url = os.getenv("BACKEND_URL")
 client_secrets_file = os.path.join(pathlib.Path(__file__).parent, "client_secret.json")
 flow = Flow.from_client_secrets_file(
     client_secrets_file=client_secrets_file,
     scopes=["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "openid"],
-    redirect_uri="http://127.0.0.1:5000/api/v1/auth/callback"
+    redirect_uri=f"{backend_url}api/v1/auth/callback"
 )
 
 class GoogleLoginResource(Resource):
@@ -57,19 +62,33 @@ class CallbackResource(Resource):
             # Extract user information
             email = idinfo.get("email")
             username = idinfo.get("name")
-            profile_picture = idinfo.get("picture")
+            google_profile_picture = idinfo.get("picture")
             
             # Find or create the user in the database
             user = User.query.filter_by(email=email).first()
             
             if not user:
-                # Sign up (create) a new user if one does not exist
+                unique_filename = f"{uuid.uuid4()}_{secure_filename('google_profile.jpg')}"
+                profile_image_path = os.path.join(
+                    current_app.config["PROFILE_UPLOAD_FOLDER"], unique_filename
+                )
+
+                # Download the Google profile picture and save locally
+                if google_profile_picture:
+                    response = requests.get(google_profile_picture)
+                    if response.status_code == 200:
+                        with open(profile_image_path, "wb") as f:
+                            f.write(response.content)
+
+                # Assign the local URL to the user's profile picture
+                profile_picture_url = f"{backend_url}api/v1/user-details/profile-image/{unique_filename}"
+                
                 user = User(
                     username=username,  # Ensure you are providing a username
                     email=email,
                     password=None,  # Assuming this is a Google signup, password can be None
                     phone_number=None,  # If not provided, this can also be None
-                    profilePicture=profile_picture,
+                    profilePicture=profile_picture_url,
                     role="farmer",  # Set default role
                     isVerified=True,
                     googleId = google_id,
@@ -79,7 +98,7 @@ class CallbackResource(Resource):
                 db.session.commit()
                 
             if user.isBlocked:
-                return redirect(f"http://localhost:3000/account-block")
+                return redirect(f"{frontend_url}account-block")
             
             # Create access and refresh tokens
             user_identity = {
@@ -99,7 +118,7 @@ class CallbackResource(Resource):
                 "user": user_identity
             })
             
-            return redirect(f"http://localhost:3000/google-auth?access_token={access_token}&refresh_token={refresh_token}")
+            return redirect(f"{frontend_url}google-auth?access_token={access_token}&refresh_token={refresh_token}")
 
         except ValueError:
             # Invalid token
