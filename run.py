@@ -2,7 +2,7 @@ import os
 from flask import Flask, jsonify
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-from routes import authBlueprint, mail, socketio, userDetailsBlueprint, communityBlueprint, diseaseBlueprint, clientsBlueprint, supportBlueprint
+from routes import authBlueprint, mail, socketio, userDetailsBlueprint, communityBlueprint, diseaseBlueprint, clientsBlueprint, supportBlueprint, dashboardBlueprint
 from config import DevelopmentConfig
 from models import db
 from cli_commands import register_cli
@@ -69,6 +69,7 @@ def create_app(config_class=DevelopmentConfig):
     app.register_blueprint(diseaseBlueprint)
     app.register_blueprint(clientsBlueprint)
     app.register_blueprint(supportBlueprint)
+    app.register_blueprint(dashboardBlueprint)
 
     register_cli(app)
 

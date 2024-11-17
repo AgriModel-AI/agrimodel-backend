@@ -5,7 +5,7 @@ import uuid
 from flask import abort, current_app, request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import UserDetails, db, User
+from models import UserDetails, db, User, District
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 load_dotenv()
@@ -38,8 +38,9 @@ class UserDetailsResource(Resource):
 
         # Fetch user details based on userId
         result = (
-            db.session.query(User, UserDetails)
+            db.session.query(User, UserDetails, District)
             .outerjoin(UserDetails, User.userId == UserDetails.userId)
+            .outerjoin(District, UserDetails.districtId == District.districtId)
             .filter(User.userId == userId)
             .first()
         )
@@ -48,10 +49,17 @@ class UserDetailsResource(Resource):
         if not result:
             return {"message": "User not found."}, 404
 
-        user, user_details = result
+        user, user_details, district = result
 
         # Convert date of birth (dob) to string (ISO format) if present
         dob_str = user_details.dob.isoformat() if user_details and user_details.dob else None
+
+        # Construct district object if available
+        district_obj = {
+            "id": district.districtId,
+            "provinceId": district.provinceId,
+            "name": district.name
+        } if district else None
 
         return {
             "userId": user.userId,
@@ -62,12 +70,11 @@ class UserDetailsResource(Resource):
             "role": user.role,
             "names": user_details.names if user_details else None,
             "national_id": user_details.national_id if user_details else None,
-            "city": user_details.city if user_details else None,
+            "district": district_obj,
             "address": user_details.address if user_details else None,
             "dob": dob_str,
             "gender": user_details.gender if user_details else None
         }, 200
-
 
     @jwt_required()
     def post(self):
@@ -86,10 +93,16 @@ class UserDetailsResource(Resource):
         files = request.files
 
         # Validate required fields for create or update
-        required_fields = ["names", "national_id", "city", "address", "dob", "gender", "phone_number"]
+        required_fields = ["names", "national_id", "district", "address", "dob", "gender", "phone_number"]
         for field in required_fields:
             if field not in data or not data[field].strip():
                 abort(400, description=f"Field '{field}' is required and cannot be empty.")
+
+        # Validate district
+        district_name = data["district"]
+        district = District.query.filter_by(name=district_name).first()
+        if not district:
+            abort(400, description="Invalid district. Please provide a valid district name.")
 
         # Validate national_id length
         national_id = data["national_id"]
@@ -113,7 +126,7 @@ class UserDetailsResource(Resource):
         if gender not in ["male", "female"]:
             abort(400, description="Invalid gender. It must be either 'male' or 'female'.")
 
-
+        # Check for unique constraints
         phone_taken = User.query.filter(User.phone_number == phone_number, User.userId != userId).first()
         if phone_taken:
             abort(400, description="Phone number is already taken by another user.")
@@ -121,7 +134,7 @@ class UserDetailsResource(Resource):
         national_id_taken = UserDetails.query.filter(UserDetails.national_id == national_id, UserDetails.userId != userId).first()
         if national_id_taken:
             abort(400, description="National ID is already taken by another user.")
-            
+
         # Handle profile image upload (optional)
         profile_image = files.get("profilePicture")
         profile_image_path = None
@@ -144,7 +157,7 @@ class UserDetailsResource(Resource):
                     userId=userId,
                     names=data["names"],
                     national_id=national_id,
-                    city=data["city"],
+                    districtId=district.districtId,
                     address=data["address"],
                     dob=dob_date,
                     gender=gender,
@@ -155,12 +168,11 @@ class UserDetailsResource(Resource):
                 # Update existing user details
                 user_details.names = data["names"]
                 user_details.national_id = national_id
-                user_details.city = data["city"]
+                user_details.districtId = district.districtId
                 user_details.address = data["address"]
                 user_details.dob = dob_date
                 user_details.gender = gender
                 message = "User details updated successfully."
-                
 
             # Update User's profile picture and phone_number (if provided)
             if profile_image_path:
@@ -170,8 +182,15 @@ class UserDetailsResource(Resource):
 
             # Commit changes
             db.session.commit()
-            
+
             dob_str = user_details.dob.isoformat() if user_details and user_details.dob else None
+
+            district_obj = {
+                "id": district.districtId,
+                "provinceId": district.provinceId,
+                "name": district.name
+            }
+
             return {
                 "userId": user.userId,
                 "username": user.username,
@@ -181,12 +200,13 @@ class UserDetailsResource(Resource):
                 "role": user.role,
                 "names": user_details.names if user_details else None,
                 "national_id": user_details.national_id if user_details else None,
-                "city": user_details.city if user_details else None,
+                "district": district_obj,
                 "address": user_details.address if user_details else None,
                 "dob": dob_str,
                 "gender": user_details.gender if user_details else None
             }, 200
 
         except Exception as e:
-            return {"message": "An error occured"}, 500
+            return {"message": "An error occurred"}, 500
+
 

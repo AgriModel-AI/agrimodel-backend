@@ -9,3 +9,4 @@ from .userDetails_route import userDetailsBlueprint
 from .community_route import communityBlueprint
 from .clients_route import clientsBlueprint
 from .support_route import supportBlueprint
+from .dashboard import dashboardBlueprint

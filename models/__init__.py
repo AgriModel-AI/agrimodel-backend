@@ -11,3 +11,6 @@ from .UserCommunity import UserCommunity
 from .VerificationCode import VerificationCode
 from .UserDetails import UserDetails
 from .SupportRequest import SupportRequestType, SupportRequest, SupportRequestStatus
+from .District import District
+from .Province import Province
+from .provincesAndDistrictsDataSeed import seed_provinces_and_districts
