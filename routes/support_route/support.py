@@ -46,7 +46,7 @@ class SupportResource(Resource):
                 subject=subject,
                 description=description,
                 type=SupportRequestType[enum_key],
-                status=SupportRequestStatus.OPEN,
+                status=SupportRequestStatus.PENDING,
                 createdAt=datetime.utcnow(),
                 updatedAt=datetime.utcnow()
             )

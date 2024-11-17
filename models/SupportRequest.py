@@ -5,7 +5,7 @@ import enum
 
 # Enum for Support Request Status
 class SupportRequestStatus(enum.Enum):
-    OPEN = 'OPEN'
+    PENDING = 'PENDING'
     IN_PROGRESS = 'IN_PROGRESS'
     RESOLVED = 'RESOLVED'
     CLOSED = 'CLOSED'
@@ -28,7 +28,7 @@ class SupportRequest(db.Model):
     subject = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=False)
     type = db.Column(Enum(SupportRequestType), nullable=False)  # New field for request type
-    status = db.Column(Enum(SupportRequestStatus), default=SupportRequestStatus.OPEN, nullable=False)
+    status = db.Column(Enum(SupportRequestStatus), default=SupportRequestStatus.PENDING, nullable=False)
     createdAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updatedAt = db.Column(db.DateTime, onupdate=datetime.utcnow, nullable=False)
 
