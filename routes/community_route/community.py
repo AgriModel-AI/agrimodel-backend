@@ -7,7 +7,10 @@ from sqlalchemy import func
 from models import Community, Post, UserCommunity, db, User
 from werkzeug.utils import secure_filename
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
+backend_url = os.getenv("BACKEND_URL")
 # Allowed extensions for images
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -88,12 +91,13 @@ class CommunityListResource(Resource):
         file_path = os.path.join(current_app.config["COMMUNITY_UPLOAD_FOLDER"], unique_filename)
         image.save(file_path)
         
+        
         # Validate description is optional
         new_community = Community(
             name=data['name'],
             description=data.get('description', ''),
             createdBy=userId,
-            image=unique_filename
+            image=f"{backend_url}api/v1/communities/image/{unique_filename}"
         )
         db.session.add(new_community)
         db.session.commit()
@@ -206,9 +210,11 @@ class CommunityImageResource(Resource):
                     os.remove(old_image_path)
             
             # Update the community image field
-            community.image = unique_filename
+            community.image = f"{backend_url}api/v1/communities/image/{unique_filename}"
             db.session.commit()
+            
+            image_url_res = f"{backend_url}api/v1/communities/image/{unique_filename}"
 
-            return {"message": "Community image updated successfully.", "image_url": unique_filename}, 200
+            return {"message": "Community image updated successfully.", "image_url": image_url_res}, 200
         else:
             return {"message": "Invalid file format. Allowed types: png, jpg, jpeg, gif."}, 400

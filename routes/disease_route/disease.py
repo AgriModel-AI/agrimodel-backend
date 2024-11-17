@@ -5,7 +5,9 @@ from flask_restful import Api, Resource, abort
 from models import db, Disease
 from werkzeug.utils import secure_filename
 import os
-
+from dotenv import load_dotenv
+load_dotenv()
+backend_url = os.getenv("BACKEND_URL")
 # Allowed extensions for images
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -60,7 +62,7 @@ class DiseaseResource(Resource):
                     unique_filename = f"{uuid.uuid4()}_{filename}"
                     file_path = os.path.join(current_app.config["DISEASES_UPLOAD_FOLDER"], unique_filename)
                     file.save(file_path)
-                    images.append(unique_filename)
+                    images.append(f"{backend_url}api/v1/disease/image/{unique_filename}")
                 else:
                     return {"message": "Invalid file format. Allowed types: png, jpg, jpeg, gif."}, 400
 
@@ -117,7 +119,7 @@ class DiseaseResource(Resource):
                     unique_filename = f"{uuid.uuid4()}_{filename}"
                     file_path = os.path.join(current_app.config["DISEASES_UPLOAD_FOLDER"], unique_filename)
                     file.save(file_path)
-                    images.append(unique_filename)
+                    images.append(f"{backend_url}api/v1/disease/image/{unique_filename}")
             disease.images = ",".join(images)  # Replace all images
 
         db.session.commit()
@@ -162,11 +164,9 @@ class DiseaseResource(Resource):
                     unique_filename = f"{uuid.uuid4()}_{filename}"
                     file_path = os.path.join(current_app.config["DISEASES_UPLOAD_FOLDER"], unique_filename)
                     file.save(file_path)
-                    new_images.append(unique_filename)
+                    new_images.append(f"{backend_url}api/v1/disease/image/{unique_filename}")
 
-            # Append new images to the existing list
-            existing_images = disease.images.split(",") if disease.images else []
-            disease.images = ",".join(existing_images + new_images)
+            disease.images = ",".join(new_images)
 
         db.session.commit()
         return {"message": "Disease partially updated successfully."}, 200
@@ -179,14 +179,6 @@ class DiseaseResource(Resource):
         disease = Disease.query.get(disease_id)
         if not disease:
             return {"message": "Disease not found."}, 404
-        
-        # Delete associated images from storage
-        if disease.images:
-            image_files = disease.images.split(",")
-            for image_file in image_files:
-                image_path = os.path.join(current_app.config["DISEASES_UPLOAD_FOLDER"], image_file)
-                if os.path.exists(image_path):
-                    os.remove(image_path)
         
         # Delete the disease record from the database
         db.session.delete(disease)

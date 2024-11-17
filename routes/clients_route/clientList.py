@@ -1,7 +1,6 @@
-from flask import request, jsonify
 from flask_restful import Resource, abort
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, User, UserDetails
+from flask_jwt_extended import jwt_required
+from models import db, User, UserDetails, District, Province
 
 class ClientResource(Resource):
     
@@ -9,14 +8,16 @@ class ClientResource(Resource):
     def get(self):
         """Fetch all clients with additional user details."""
         try:
-            # Fetch all users with their associated details
+            # Explicitly select the required fields and join with Province
             clients = (
-                db.session.query(User, UserDetails)
+                db.session.query(User, UserDetails, District, Province)
                 .outerjoin(UserDetails, User.userId == UserDetails.userId)
+                .outerjoin(District, District.districtId == UserDetails.districtId)
+                .outerjoin(Province, Province.provinceId == District.provinceId)
                 .all()
             )
 
-            # Prepare client data with both User and UserDetails fields
+            # Prepare client data with User, UserDetails, District, and Province fields
             client_data = [{
                 "userId": user.userId,
                 "username": user.username,
@@ -31,11 +32,14 @@ class ClientResource(Resource):
                 # UserDetails fields
                 "names": details.names if details else None,
                 "national_id": details.national_id if details else None,
-                "city": details.city if details else None,
+                "district": {
+                    "provinceName": province.name if province else None,
+                    "districtName": district.name if district else None,
+                } if district else None,
                 "address": details.address if details else None,
                 "dob": details.dob.isoformat() if details and details.dob else None,
                 "gender": details.gender if details else None
-            } for user, details in clients]
+            } for user, details, district, province in clients]
 
             return {"data": client_data}, 200
 
