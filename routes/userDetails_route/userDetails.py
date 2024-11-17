@@ -113,6 +113,15 @@ class UserDetailsResource(Resource):
         if gender not in ["male", "female"]:
             abort(400, description="Invalid gender. It must be either 'male' or 'female'.")
 
+
+        phone_taken = User.query.filter(User.phone_number == phone_number, User.userId != userId).first()
+        if phone_taken:
+            abort(400, description="Phone number is already taken by another user.")
+
+        national_id_taken = UserDetails.query.filter(UserDetails.national_id == national_id, UserDetails.userId != userId).first()
+        if national_id_taken:
+            abort(400, description="National ID is already taken by another user.")
+            
         # Handle profile image upload (optional)
         profile_image = files.get("profilePicture")
         profile_image_path = None
@@ -161,9 +170,23 @@ class UserDetailsResource(Resource):
 
             # Commit changes
             db.session.commit()
-
-            return {"message": message}, 200 if user_details else 201
+            
+            dob_str = user_details.dob.isoformat() if user_details and user_details.dob else None
+            return {
+                "userId": user.userId,
+                "username": user.username,
+                "email": user.email,
+                "phone_number": user.phone_number,
+                "profilePicture": user.profilePicture,
+                "role": user.role,
+                "names": user_details.names if user_details else None,
+                "national_id": user_details.national_id if user_details else None,
+                "city": user_details.city if user_details else None,
+                "address": user_details.address if user_details else None,
+                "dob": dob_str,
+                "gender": user_details.gender if user_details else None
+            }, 200
 
         except Exception as e:
-            abort(500, description=str(e))
+            return {"message": "An error occured"}, 500
 
