@@ -22,7 +22,7 @@ def create_app(config_class=DevelopmentConfig):
     if not os.path.exists(config_class.UPLOAD_FOLDER):
         os.makedirs(config_class.UPLOAD_FOLDER)
         
-    CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, methods=["GET", "DELETE","POST", "PUT", "PATCH","OPTIONS"], allow_headers=["Content-Type", "Authorization"], supports_credentials=True)
+    CORS(app, resources={r"/*": {"origins": "*"}}, methods=["GET", "DELETE","POST", "PUT", "PATCH","OPTIONS"], allow_headers=["Content-Type", "Authorization"], supports_credentials=True)
 
     # Register global error handler
     @app.errorhandler(404)
@@ -81,4 +81,4 @@ def create_app(config_class=DevelopmentConfig):
 if __name__ == "__main__":
     app = create_app()
     # app.run()
-    socketio.run(app, debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
