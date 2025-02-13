@@ -46,11 +46,19 @@ class TestingConfig(Config):
     SERVER_NAME = None
     SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL")
 
+class ProductionConfig(Config):
+    """Production configuration."""
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
+    SQLALCHEMY_ECHO = True
+
 config = {
     "development": DevelopmentConfig,
     "testing": TestingConfig,
+    "production": ProductionConfig,  # Added production config
     "default": DevelopmentConfig
 }
+
 
 
 os.makedirs(Config.BASE_UPLOAD_FOLDER, exist_ok=True)
