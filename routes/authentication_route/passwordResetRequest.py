@@ -76,10 +76,10 @@ class VerifyPasswordResetResource(Resource):
         reset_request = PasswordResetRequest.query.filter_by(userId=user.userId, token=token).first()
         
         if not reset_request:
-            abort(400, message="Invalid token.")
+            abort(400, message="Code is invalid.", invalid_code= True)
         
         if reset_request.is_expired():
-            abort(400, message="Token has expired.")
+            abort(400, message="Code has expired.", invalid_code= True)
         
         # Hash the new password
         hashed_password = generate_password_hash(new_password)
