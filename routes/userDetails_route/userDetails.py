@@ -13,6 +13,8 @@ load_dotenv()
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
+backend_url = os.getenv("BACKEND_URL")
+
 # Utility function to check if a file is an allowed image type
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -66,7 +68,7 @@ class UserDetailsResource(Resource):
             "username": user.username,
             "email": user.email,
             "phone_number": user.phone_number,
-            "profilePicture": user.profilePicture,
+            "profilePicture": user.profilePicture if user.profilePicture else f'{backend_url}api/v1/user-details/profile-image/default.png',
             "role": user.role,
             "names": user_details.names if user_details else user.username,
             "national_id": user_details.national_id if user_details else None,
