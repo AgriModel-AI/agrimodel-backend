@@ -6,7 +6,7 @@ from config import Config
 from models import User
 from flask import redirect, request, session
 from werkzeug.security import check_password_hash
-from flask_jwt_extended import create_access_token, create_refresh_token
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
 
 
 class LoginResource(Resource):
@@ -123,4 +123,19 @@ class LoginClientResource(Resource):
             "message": "Login successful.",
             "access_token": access_token,
             "refresh_token": refresh_token
+        }, 200
+        
+class RefreshTokenResource(Resource):
+    @jwt_required(refresh=True)
+    def post(self):
+        """Generate a new access token and refresh token using a valid refresh token."""
+        current_user = get_jwt_identity()
+
+        new_access_token = create_access_token(identity=current_user)
+        new_refresh_token = create_refresh_token(identity=current_user)
+
+        return {
+            "message": "Access token refreshed successfully.",
+            "access_token": new_access_token,
+            "refresh_token": new_refresh_token
         }, 200

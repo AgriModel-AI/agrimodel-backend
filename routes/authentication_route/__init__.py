@@ -9,7 +9,7 @@ authApi = Api(authBlueprint)
 from .Signup import SignupResource
 from .ValidateCode import ValidateCodeResource
 from .ValidateCode import ResendCodeResource
-from .Login import LoginResource, LoginClientResource
+from .Login import LoginResource, LoginClientResource, RefreshTokenResource
 from .passwordResetRequest import PasswordResetResource, VerifyPasswordResetResource
 from .GoogleAuth import GoogleLoginResource, CallbackResource
 from .GoogleAuthClient import GoogleLoginResourceClient, CallbackResourceClient
@@ -19,6 +19,7 @@ authApi.add_resource(SignupResource, "/signup")
 authApi.add_resource(ValidateCodeResource, "/validate-code")
 authApi.add_resource(ResendCodeResource, "/resend-code")
 authApi.add_resource(LoginResource, "/login")
+authApi.add_resource(RefreshTokenResource, "/refresh-token")
 authApi.add_resource(LoginClientResource, "/client/login")
 authApi.add_resource(GoogleLoginResource, "/google-auth")
 authApi.add_resource(CallbackResource, "/callback")

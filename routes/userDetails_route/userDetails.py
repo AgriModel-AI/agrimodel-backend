@@ -13,7 +13,7 @@ load_dotenv()
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
-backend_url = os.getenv("BACKEND_URL")
+backend_url = 'http://192.168.1.91:5000/'
 
 # Utility function to check if a file is an allowed image type
 def allowed_file(filename):

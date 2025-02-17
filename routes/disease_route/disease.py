@@ -7,7 +7,9 @@ from werkzeug.utils import secure_filename
 import os
 from dotenv import load_dotenv
 load_dotenv()
-backend_url = os.getenv("BACKEND_URL")
+
+# backend_url = os.getenv("BACKEND_URL")
+backend_url = 'http://192.168.1.91:5000/'
 # Allowed extensions for images
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
