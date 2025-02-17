@@ -68,7 +68,7 @@ class UserDetailsResource(Resource):
             "phone_number": user.phone_number,
             "profilePicture": user.profilePicture,
             "role": user.role,
-            "names": user_details.names if user_details else None,
+            "names": user_details.names if user_details else user.username,
             "national_id": user_details.national_id if user_details else None,
             "district": district_obj,
             "address": user_details.address if user_details else None,
