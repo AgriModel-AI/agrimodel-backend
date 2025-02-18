@@ -1,16 +1,17 @@
 import re
 import uuid
-from flask import current_app, make_response, jsonify, request
+from flask import current_app, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource
-from sqlalchemy import func
+from sqlalchemy import func, asc, desc
 from models import Community, Post, UserCommunity, db, User
 from werkzeug.utils import secure_filename
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
-backend_url = os.getenv("BACKEND_URL")
+# backend_url = os.getenv("BACKEND_URL")
+backend_url = 'http://192.168.1.91:5000/'
 # Allowed extensions for images
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -25,10 +26,27 @@ def is_admin():
 class CommunityListResource(Resource):
     @jwt_required()
     def get(self):
-        """Get a list of all communities along with the creator's username and email."""
-        
-        # Perform a join to get community data along with user details
-        communities = db.session.query(
+        """Get a list of communities with optional filtering, sorting, and pagination."""
+
+        # Query parameters
+        search_query = request.args.get('search', '').strip()
+        sort_by = request.args.get('sort_by', 'createdAt')  # Default sorting by createdAt
+        sort_order = request.args.get('sort_order', 'desc')  # Default to descending order
+        limit = request.args.get('limit', type=int)  # Number of items to fetch
+        offset = request.args.get('offset', type=int, default=0)  # Pagination offset
+
+        # Validate sorting attribute
+        allowed_sort_columns = {
+            'name': Community.name,
+            'createdAt': Community.createdAt,
+            'user_count': func.count(UserCommunity.userId),
+            'post_count': func.count(Post.postId)
+        }
+        sort_column = allowed_sort_columns.get(sort_by, Community.createdAt)
+        sort_direction = desc(sort_column) if sort_order.lower() == 'desc' else asc(sort_column)
+
+        # Base query
+        query = db.session.query(
             Community.communityId,
             Community.name,
             Community.image,
@@ -36,30 +54,44 @@ class CommunityListResource(Resource):
             Community.createdAt,
             User.username.label('creator_username'),
             User.email.label('creator_email'),
-            func.count(UserCommunity.userId).label('user_count'),   # Count of users in the community
-            func.count(Post.postId).label('post_count')             # Count of posts in the community
+            func.count(UserCommunity.userId).label('user_count'),
+            func.count(Post.postId).label('post_count')
         ).join(User, Community.createdBy == User.userId) \
          .outerjoin(UserCommunity, Community.communityId == UserCommunity.communityId) \
          .outerjoin(Post, Community.communityId == Post.communityId) \
-         .group_by(Community.communityId, User.userId) \
-         .all()
+         .group_by(Community.communityId, User.userId)
 
-        # Format the results
-        data = []
-        for community in communities:
-            data.append({
-                "communityId": community.communityId,
-                "name": community.name,
-                "image": community.image,
-                "description": community.description,
-                "createdBy": {
-                    "username": community.creator_username,
-                    "email": community.creator_email
-                },
-                "createdAt": community.createdAt.isoformat(),
-                "users": community.user_count,
-                "posts": community.post_count
-            })
+        # Apply search filter if provided
+        if search_query:
+            query = query.filter(
+                (Community.name.ilike(f"%{search_query}%")) |
+                (Community.description.ilike(f"%{search_query}%"))
+            )
+
+        # Apply sorting
+        query = query.order_by(sort_direction)
+
+        # Apply limit and offset for pagination
+        if limit:
+            query = query.limit(limit).offset(offset)
+
+        # Execute query
+        communities = query.all()
+
+        # Format results
+        data = [{
+            "communityId": c.communityId,
+            "name": c.name,
+            "image": c.image,
+            "description": c.description,
+            "createdBy": {
+                "username": c.creator_username,
+                "email": c.creator_email
+            },
+            "createdAt": c.createdAt.isoformat(),
+            "users": c.user_count,
+            "posts": c.post_count
+        } for c in communities]
 
         return {"data": data}, 200
 
@@ -72,6 +104,9 @@ class CommunityListResource(Resource):
         data = request.form
         if 'name' not in data or not data['name']:
             return {"message": "Community name is required."}, 400
+        
+        if 'description' not in data or not data['description']:
+            return {"message": "Community description is required."}, 400
         
         image = request.files.get('image')
         if not image or not allowed_file(image.filename):
