@@ -178,7 +178,6 @@ class UserDetailsResource(Resource):
 
             # Update User's profile picture and phone_number (if provided)
             if profile_image_path:
-                backend_url = os.getenv("BACKEND_URL")
                 user.profilePicture = f"{backend_url}api/v1/user-details/profile-image/{unique_filename}"
             user.phone_number = phone_number
 

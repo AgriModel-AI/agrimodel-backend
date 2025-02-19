@@ -7,14 +7,16 @@ communityApi = Api(communityBlueprint)
 
 # Import and register resources
 from .community import CommunityListResource, CommunityResource, CommunityImageResource
-from .post import PostListResource, PostResource, PostLikeResource
+from .post import PostListResource, PostResource, PostLikeResource, PostsResource
 from .comment import CommentResource, CommentListResource
 from .userCommunity import UserCommunityResource, GetUserCommunityResource
 from .communityGetImageResource import CommunityGetImageResource
+from .postGetImageResource import PostGetImageResource
 
 
 # Add login and signup resources
 communityApi.add_resource(CommunityListResource, "")
+communityApi.add_resource(PostsResource, "/posts")
 communityApi.add_resource(UserCommunityResource, "/user-community/<int:communityId>")
 communityApi.add_resource(GetUserCommunityResource, "/user-community")
 communityApi.add_resource(CommunityResource, '/<int:communityId>')
@@ -26,3 +28,4 @@ communityApi.add_resource(CommentResource, '/post/<int:postId>/comment')
 communityApi.add_resource(CommentListResource, '/post/comment/<int:commentId>')
 
 communityApi.add_resource(CommunityGetImageResource, "/image/<string:filename>")
+communityApi.add_resource(PostGetImageResource, "/posts/image/<string:filename>")

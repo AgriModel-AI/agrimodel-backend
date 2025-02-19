@@ -31,6 +31,7 @@ class Config:
     COMMUNITY_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, 'communities')
     PROFILE_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, 'profiles')
     DIAGNOSIS_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, 'diagnosis')
+    POSTS_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, 'posts')
     
     @staticmethod
     def allowed_file(filename):
@@ -66,3 +67,4 @@ os.makedirs(Config.DISEASES_UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(Config.COMMUNITY_UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(Config.PROFILE_UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(Config.DIAGNOSIS_UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(Config.POSTS_UPLOAD_FOLDER, exist_ok=True)
