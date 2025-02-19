@@ -25,7 +25,7 @@ class PostsResource(Resource):
         community_ids = {c[0] for c in db.session.query(UserCommunity.communityId).filter_by(userId=userId).all()}
 
         if not community_ids:
-            return {"message": "User has not joined any communities"}, 200
+            return {"posts": []}, 200
 
         # Get request parameters
         search_query = request.args.get('search', '').strip()
@@ -52,7 +52,10 @@ class PostsResource(Resource):
             query = query.offset(offset)
 
         # Fetch posts with optimized joins
-        posts = query.options(selectinload(Post.comments)).all()
+        posts = query.options(selectinload(Post.comments), selectinload(Post.user)).all()
+        
+        if not posts:
+            return {"posts": []}, 200
 
         # Optimize liked post query
         liked_post_ids = {postId for (postId,) in db.session.query(PostLike.postId).filter_by(userId=userId)}
@@ -60,6 +63,11 @@ class PostsResource(Resource):
         # Format response
         post_list = [
             {
+                "user": {
+                    "userId": post.user.userId,
+                    "names": post.user.details.names if post.user.details.names else post.user.username,
+                    "profilePicture": post.user.profilePicture
+                },
                 "postId": post.postId,
                 "content": post.content,
                 "createdAt": post.createdAt.strftime("%Y-%m-%d %H:%M:%S"),

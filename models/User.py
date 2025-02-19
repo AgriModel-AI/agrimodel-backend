@@ -21,7 +21,6 @@ class User(db.Model):
     authProvider = db.Column(db.String(50), default='local')  # Can be 'local' or 'google'
 
     # Relationships
-    posts = relationship('Post', backref='user', lazy=True)
     diagnosisResults = relationship('DiagnosisResult', backref='user', lazy=True)
     notifications = relationship('Notification', backref='user', lazy=True)
     user_communities = relationship('UserCommunity', backref='user', lazy=True)

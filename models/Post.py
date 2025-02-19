@@ -14,5 +14,6 @@ class Post(db.Model):
     communityId = db.Column(db.Integer, db.ForeignKey('communities.communityId'), nullable=False)
 
     # Relationships
+    user = relationship('User', backref='post', lazy=True)
     comments = relationship('Comment', backref='post', lazy=True)
     likes_history = relationship('PostLike', backref='post', lazy=True)
