@@ -38,7 +38,7 @@ class CommentResource(Resource):
 
         db.session.add(new_comment)
         db.session.commit()
-        return {"message": "Comment created successfully.", "commentId": new_comment.commentId}, 201
+        return {"message": "Comment created successfully.", "data":{"commentId": new_comment.commentId, "content": new_comment.content, "createdAt": new_comment.createdAt.strftime("%Y-%m-%d %H:%M:%S"), "postId": new_comment.postId, "userId": new_comment.userId, "names": new_comment.user.details.names}}, 201
     
 
 class CommentListResource(Resource):
