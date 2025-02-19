@@ -1,4 +1,5 @@
 from models import db
+from sqlalchemy.orm import relationship
 
 from datetime import datetime
 
@@ -9,3 +10,6 @@ class Comment(db.Model):
     createdAt = db.Column(db.DateTime, default=datetime.utcnow)
     postId = db.Column(db.Integer, db.ForeignKey('posts.postId'), nullable=False)
     userId = db.Column(db.Integer, db.ForeignKey('users.userId'), nullable=False)
+    
+    
+    user = relationship('User', backref='comments', lazy=True)

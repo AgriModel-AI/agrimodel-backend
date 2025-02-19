@@ -7,8 +7,8 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import request
 from config import Config
-from models import Post, UserCommunity, db
-from sqlalchemy.orm import joinedload
+from models import Post, PostLike, UserCommunity, db
+from sqlalchemy.orm import selectinload
 
 
 backend_url = 'http://192.168.1.91:5000/'
@@ -22,20 +22,17 @@ class PostsResource(Resource):
     def get(self):
         user_identity = get_jwt_identity()
         userId = int(user_identity["userId"])
-
-        # Fetch community IDs where the user has joined
-        user_community_ids = db.session.query(UserCommunity.communityId).filter_by(userId=userId).all()
-        community_ids = [c[0] for c in user_community_ids]  # Extract community IDs
+        community_ids = {c[0] for c in db.session.query(UserCommunity.communityId).filter_by(userId=userId).all()}
 
         if not community_ids:
             return {"message": "User has not joined any communities"}, 200
 
         # Get request parameters
         search_query = request.args.get('search', '').strip()
-        sort_by = request.args.get('sort_by', 'createdAt')  # Default sorting by createdAt
-        sort_order = request.args.get('sort_order', 'desc')  # Default to descending order
-        limit = request.args.get('limit', type=int)  # Number of items to fetch
-        offset = request.args.get('offset', type=int, default=0)  # Default offset is 0
+        sort_by = request.args.get('sort_by', 'createdAt')
+        sort_order = request.args.get('sort_order', 'desc')
+        limit = request.args.get('limit', type=int)
+        offset = request.args.get('offset', type=int, default=0)
 
         # Base query
         query = db.session.query(Post).filter(Post.communityId.in_(community_ids))
@@ -44,37 +41,39 @@ class PostsResource(Resource):
         if search_query:
             query = query.filter(Post.content.ilike(f"%{search_query}%"))
 
-        # Apply sorting
-        if sort_order == "desc":
-            query = query.order_by(desc(getattr(Post, sort_by)))
-        else:
-            query = query.order_by(asc(getattr(Post, sort_by)))
+        # Apply sorting safely
+        sort_column = getattr(Post, sort_by, Post.createdAt)  # Default to createdAt
+        query = query.order_by(desc(sort_column) if sort_order == "desc" else asc(sort_column))
 
-        # Apply pagination (limit/offset)
+        # Apply pagination
         if limit:
-            query = query.limit(limit).offset(offset)
+            query = query.limit(limit)
+        if offset:
+            query = query.offset(offset)
 
-        # Fetch posts with relationships
-        posts = query.options(joinedload(Post.community), joinedload(Post.comments)).all()
+        # Fetch posts with optimized joins
+        posts = query.options(selectinload(Post.comments)).all()
 
-        # Format response data
+        # Optimize liked post query
+        liked_post_ids = {postId for (postId,) in db.session.query(PostLike.postId).filter_by(userId=userId)}
+
+        # Format response
         post_list = [
             {
                 "postId": post.postId,
                 "content": post.content,
                 "createdAt": post.createdAt.strftime("%Y-%m-%d %H:%M:%S"),
                 "likes": post.likes,
+                "isLiked": post.postId in liked_post_ids,
                 "imageUrl": post.imageUrl,
-                "community": {
-                    "communityId": post.community.communityId,
-                    "name": post.community.name,
-                },
+                "communityId": post.communityId,
                 "comments": [
                     {
                         "commentId": comment.commentId,
                         "content": comment.content,
                         "createdAt": comment.createdAt.strftime("%Y-%m-%d %H:%M:%S"),
                         "userId": comment.userId,
+                        "names": comment.user.details.names if comment.user.details.names else comment.user.username,
                     }
                     for comment in post.comments
                 ],
@@ -83,6 +82,7 @@ class PostsResource(Resource):
         ]
 
         return {"posts": post_list}, 200
+
 
 class PostListResource(Resource):
     @jwt_required()
@@ -213,28 +213,29 @@ class PostResource(Resource):
 class PostLikeResource(Resource):
     @jwt_required()
     def post(self, postId):
-        """Like a post."""
+        """Like or Unlike a post based on the like history."""
 
-        # Increment the likes count on the post
+        user_identity = get_jwt_identity()
+        userId = int(user_identity["userId"])
+
         post = Post.query.get(postId)
-        if post:
-            post.likes += 1
-            db.session.commit()
-            return {"message": "Post liked successfully.", "postId": postId, "likes": post.likes}, 201
-        else:
-            db.session.rollback()  # Rollback the transaction if post not found
+        if not post:
             return {"message": "Post not found."}, 404
 
-    @jwt_required()
-    def delete(self, postId):
-        """Unlike a post."""
+        # Check if the user already liked the post
+        existing_like = PostLike.query.filter_by(postId=postId, userId=userId).first()
 
-        # Decrement the likes count on the post
-        post = Post.query.get(postId)
-        if post:
+        if existing_like:
+            # Unlike the post (remove like history entry)
+            db.session.delete(existing_like)
             post.likes -= 1
-            db.session.commit()
-            return {"message": "Post unliked successfully.", "postId": postId, "likes": post.likes}, 200
+            message = "Post unliked successfully."
         else:
-            db.session.rollback()  # Rollback the transaction if post not found
-            return {"message": "Post not found."}, 404
+            # Like the post (add like history entry)
+            new_like = PostLike(postId=postId, userId=userId)
+            db.session.add(new_like)
+            post.likes += 1
+            message = "Post liked successfully."
+
+        db.session.commit()
+        return {"message": message, "postId": postId, "likes": post.likes}, 200

@@ -15,3 +15,4 @@ class Post(db.Model):
 
     # Relationships
     comments = relationship('Comment', backref='post', lazy=True)
+    likes_history = relationship('PostLike', backref='post', lazy=True)

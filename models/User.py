@@ -25,7 +25,7 @@ class User(db.Model):
     diagnosisResults = relationship('DiagnosisResult', backref='user', lazy=True)
     notifications = relationship('Notification', backref='user', lazy=True)
     user_communities = relationship('UserCommunity', backref='user', lazy=True)
-    details = relationship('UserDetails', backref='user', lazy=True)
+    details = relationship('UserDetails',  uselist=False, backref='user', lazy=True)
 
     def __init__(self, username=None, password=None, email=None, phone_number=None, profilePicture=None, 
                  role='user', googleId=None, authProvider='local', isVerified=False, isBlocked=False):
