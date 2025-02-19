@@ -81,7 +81,7 @@ class PostsResource(Resource):
                         "content": comment.content,
                         "createdAt": comment.createdAt.strftime("%Y-%m-%d %H:%M:%S"),
                         "userId": comment.userId,
-                        "names": comment.user.details.names if comment.user.details.names else comment.user.username,
+                        "names": comment.user.details.names if comment.user.details else comment.user.username,
                     }
                     for comment in post.comments
                 ],
