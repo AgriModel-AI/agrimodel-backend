@@ -145,7 +145,23 @@ class PostListResource(Resource):
         
         db.session.add(new_post)
         db.session.commit()
-        return {"message": "Post created successfully.", "postId": new_post.postId}, 201
+        
+        data = {
+                "user": {
+                    "userId": new_post.user.userId,
+                    "names": new_post.user.details.names if new_post.user.details else new_post.user.username,
+                    "profilePicture": new_post.user.profilePicture
+                },
+                "postId": new_post.postId,
+                "content": new_post.content,
+                "createdAt": new_post.createdAt.strftime("%Y-%m-%d %H:%M:%S"),
+                "likes": new_post.likes,
+                "isLiked": False,
+                "imageUrl": new_post.imageUrl,
+                "communityId": new_post.communityId,
+                "comments": []
+            }
+        return {"message": "Post created successfully.", "data": data}, 201
 
 
 
