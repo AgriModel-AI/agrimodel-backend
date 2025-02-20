@@ -15,5 +15,5 @@ class Post(db.Model):
 
     # Relationships
     user = relationship('User', backref='post', lazy=True)
-    comments = relationship('Comment', backref='post', lazy=True)
-    likes_history = relationship('PostLike', backref='post', lazy=True)
+    comments = relationship('Comment', cascade="all, delete-orphan", backref='post', lazy=True)
+    likes_history = relationship('PostLike', cascade="all, delete-orphan", backref='post', lazy=True)

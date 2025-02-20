@@ -65,7 +65,7 @@ class PostsResource(Resource):
             {
                 "user": {
                     "userId": post.user.userId,
-                    "names": post.user.details.names if post.user.details.names else post.user.username,
+                    "names": post.user.details.names if post.user.details else post.user.username,
                     "profilePicture": post.user.profilePicture
                 },
                 "postId": post.postId,
@@ -231,7 +231,7 @@ class PostResource(Resource):
 
         db.session.delete(post)
         db.session.commit()
-        return {"message": "Post deleted successfully."}, 200
+        return {"message": "Post deleted successfully.", "data": {"postId": postId}}, 200
     
 
 class PostLikeResource(Resource):
