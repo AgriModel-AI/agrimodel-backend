@@ -9,9 +9,8 @@ from flask import request
 from config import Config
 from models import Post, PostLike, UserCommunity, db
 from sqlalchemy.orm import selectinload
+import cloudinary.uploader
 
-
-backend_url = 'http://192.168.1.91:5000/'
 # Allowed extensions for images
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -130,17 +129,21 @@ class PostListResource(Resource):
         if not image or not allowed_file(image.filename):
             return {"message": "A valid image file (png, jpg, jpeg, gif) is required."}, 400
             
-            
-        filename = secure_filename(image.filename)
-        unique_filename = f"{uuid.uuid4()}_{filename}"
-        file_path = os.path.join(current_app.config["POSTS_UPLOAD_FOLDER"], unique_filename)
-        image.save(file_path)
+        
+        try:
+            # Upload the file to Cloudinary
+            upload_result = cloudinary.uploader.upload(image)
+
+            # Get the URL of the uploaded image
+            image_url = upload_result.get('url')
+        except Exception as e:
+            return {"message": f"Image upload failed: {str(e)}"}, 404
 
         new_post = Post(
             content=data['content'],
             userId=userId,
             communityId=communityId,
-            imageUrl=f"{backend_url}api/v1/communities/posts/image/{unique_filename}"
+            imageUrl=image_url
         )
         
         db.session.add(new_post)
@@ -206,14 +209,23 @@ class PostResource(Resource):
                 return jsonify({"message": "No selected file"}), 400
             
             if not Config.allowed_file(image.filename):
-                return jsonify({"message": "File type not allowed"}), 400
+                return jsonify({"message": "File type not allowed"}), 400            
             
-            filename = secure_filename(image.filename)
-            unique_filename = f"{uuid.uuid4()}_{filename}"
-            file_path = os.path.join(current_app.config["POSTS_UPLOAD_FOLDER"], unique_filename)
-            image.save(file_path)
-            
-            post.imageUrl = f"{backend_url}api/v1/communities/posts/image/{unique_filename}"  # Update imageUrl
+            try:
+            # Upload the file to Cloudinary
+                upload_result = cloudinary.uploader.upload(image)
+
+                # Get the URL of the uploaded image
+                image_url = upload_result.get('url')
+            except Exception as e:
+                return {"message": f"Image upload failed: {str(e)}"}, 404
+
+            # Delete the old image file if it exists
+            if post.imageUrl:
+                old_image_id = post.imageUrl.split('/')[-1].split('.')[0]
+                cloudinary.uploader.destroy(old_image_id)
+                
+            post.imageUrl = image_url
 
         db.session.commit()
         return {"message": "Post updated successfully.", "postId": post.postId}, 200
@@ -229,6 +241,10 @@ class PostResource(Resource):
         if not post:
             return {"message": "Post not found or you are not authorized to delete this post."}, 404
 
+        if post.imageUrl:
+            old_image_id = post.imageUrl.split('/')[-1].split('.')[0]
+            cloudinary.uploader.destroy(old_image_id)
+                
         db.session.delete(post)
         db.session.commit()
         return {"message": "Post deleted successfully.", "data": {"postId": postId}}, 200

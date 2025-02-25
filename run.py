@@ -1,4 +1,5 @@
 import os
+import cloudinary
 from flask import Flask, jsonify
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
@@ -8,8 +9,6 @@ from models import db
 from cli_commands import register_cli
 from flask_cors import CORS
 
-migrate = Migrate()
-jwt = JWTManager()
 
 
 def create_app(config_class=DevelopmentConfig):
@@ -18,6 +17,15 @@ def create_app(config_class=DevelopmentConfig):
     app.config["SECRET_KEY"] = "CodeSpecialist.com"
 
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+    
+    migrate = Migrate()
+    jwt = JWTManager()
+    
+    cloudinary.config(
+        cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+        api_key=os.getenv("CLOUDINARY_API_KEY"),
+        api_secret=os.getenv("CLOUDINARY_API_SECRET")
+    )
 
     if not os.path.exists(config_class.UPLOAD_FOLDER):
         os.makedirs(config_class.UPLOAD_FOLDER)

@@ -1,17 +1,10 @@
-import re
-import uuid
 from flask import current_app, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource
 from sqlalchemy import func, asc, desc
 from models import Community, Post, UserCommunity, db, User
-from werkzeug.utils import secure_filename
-import os
-from dotenv import load_dotenv
-load_dotenv()
+import cloudinary.uploader
 
-# backend_url = os.getenv("BACKEND_URL")
-backend_url = 'http://192.168.1.91:5000/'
 # Allowed extensions for images
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -121,10 +114,14 @@ class CommunityListResource(Resource):
         if not user:
             return {"message": "User not found."}, 404
         
-        filename = secure_filename(image.filename)
-        unique_filename = f"{uuid.uuid4()}_{filename}"
-        file_path = os.path.join(current_app.config["COMMUNITY_UPLOAD_FOLDER"], unique_filename)
-        image.save(file_path)
+        try:
+            # Upload the file to Cloudinary
+            upload_result = cloudinary.uploader.upload(image)
+
+            # Get the URL of the uploaded image
+            image_url = upload_result.get('url')
+        except Exception as e:
+            return {"message": f"Image upload failed: {str(e)}"}, 404
         
         
         # Validate description is optional
@@ -132,7 +129,7 @@ class CommunityListResource(Resource):
             name=data['name'],
             description=data.get('description', ''),
             createdBy=userId,
-            image=f"{backend_url}api/v1/communities/image/{unique_filename}"
+            image=image_url
         )
         db.session.add(new_community)
         db.session.commit()
@@ -178,8 +175,8 @@ class CommunityResource(Resource):
     @jwt_required()
     def put(self, communityId):
         """Update a community."""
-        if not is_admin():
-            return {"message": "Admins only: You are not authorized to perform this action."}, 403
+        # if not is_admin():
+        #     return {"message": "Admins only: You are not authorized to perform this action."}, 403
 
         community = Community.query.get(communityId)
         
@@ -195,23 +192,38 @@ class CommunityResource(Resource):
     @jwt_required()
     def delete(self, communityId):
         """Delete a community."""
-        if not is_admin():
-            return {"message": "Admins only: You are not authorized to perform this action."}, 403
+        # if not is_admin():
+        #     return {"message": "Admins only: You are not authorized to perform this action."}, 403
 
         try:
             community = Community.query.get(communityId)
             if not community:
                 return {"message": "Community not found."}, 404
-
-            Post.query.filter_by(communityId=communityId).delete()
             
+            # Delete community image if exists
+            if community.image:
+                old_image_id = community.image.split('/')[-1].split('.')[0]
+                cloudinary.uploader.destroy(old_image_id)
+
+            # Retrieve all posts for this community
+            posts = Post.query.filter_by(communityId=communityId).all()
+
+            # Delete post images before deleting the posts
+            for post in posts:
+                if post.imageUrl:
+                    old_image_id = post.imageUrl.split('/')[-1].split('.')[0]
+                    cloudinary.uploader.destroy(old_image_id)
+                db.session.delete(post)  # Delete each post
+
+            # Delete any associated user-community relationships
             UserCommunity.query.filter_by(communityId=communityId).delete()
 
+            # Finally, delete the community itself
             db.session.delete(community)
             db.session.commit()
 
             return {"message": "Community deleted successfully."}, 200
-        
+
         except Exception as e:
             db.session.rollback()
             return {"message": "An error occurred while deleting the community.", "error": str(e)}, 500
@@ -233,23 +245,25 @@ class CommunityImageResource(Resource):
         
         if image and allowed_file(image.filename):
             # Securely save the new image
-            filename = secure_filename(image.filename)
-            unique_filename = f"{uuid.uuid4()}_{filename}"
-            file_path = os.path.join(current_app.config["COMMUNITY_UPLOAD_FOLDER"], unique_filename)
-            image.save(file_path)
+            image_url = ''
+            try:
+            # Upload the file to Cloudinary
+                upload_result = cloudinary.uploader.upload(image)
+
+                # Get the URL of the uploaded image
+                image_url = upload_result.get('url')
+            except Exception as e:
+                return {"message": f"Image upload failed: {str(e)}"}, 404
 
             # Delete the old image file if it exists
             if community.image:
-                old_image_path = os.path.join(current_app.config["COMMUNITY_UPLOAD_FOLDER"], community.image)
-                if os.path.exists(old_image_path):
-                    os.remove(old_image_path)
+                old_image_id = community.image.split('/')[-1].split('.')[0]
+                cloudinary.uploader.destroy(old_image_id)
             
             # Update the community image field
-            community.image = f"{backend_url}api/v1/communities/image/{unique_filename}"
+            community.image = image_url
             db.session.commit()
-            
-            image_url_res = f"{backend_url}api/v1/communities/image/{unique_filename}"
 
-            return {"message": "Community image updated successfully.", "image_url": image_url_res}, 200
+            return {"message": "Community image updated successfully.", "image_url": image_url}, 200
         else:
             return {"message": "Invalid file format. Allowed types: png, jpg, jpeg, gif."}, 400
