@@ -1,5 +1,4 @@
-import uuid
-from flask import current_app, jsonify, request
+from flask import jsonify, request
 from flask_restful import Resource, abort
 from models import db, Disease
 import cloudinary.uploader

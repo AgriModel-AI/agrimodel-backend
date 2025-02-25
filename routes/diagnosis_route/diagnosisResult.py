@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import request, jsonify, current_app
+from flask import request, jsonify
 from flask_jwt_extended import jwt_required
 from flask_restful import Resource, abort
 from models import db, DiagnosisResult, Disease, District, User

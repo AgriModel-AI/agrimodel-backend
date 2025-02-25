@@ -1,8 +1,6 @@
 from datetime import datetime
-import os
 import re
-import uuid
-from flask import abort, current_app, request
+from flask import abort, request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import UserDetails, db, User, District

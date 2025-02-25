@@ -5,13 +5,12 @@ from flask_restful import Resource, abort
 import requests
 from config import Config
 from models import User, db
-from flask import current_app, jsonify, request
+from flask import jsonify, request
 from flask_jwt_extended import create_access_token, create_refresh_token
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests 
 from flask import redirect, request, session
 from dotenv import load_dotenv
-from werkzeug.utils import secure_filename
 load_dotenv()
 import cloudinary.uploader
 

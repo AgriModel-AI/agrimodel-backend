@@ -1,8 +1,6 @@
 import uuid
-from flask import current_app, jsonify
+from flask import jsonify
 from sqlalchemy import asc, desc
-from werkzeug.utils import secure_filename
-import os
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import request
