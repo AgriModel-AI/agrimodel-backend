@@ -1,13 +1,10 @@
-import os
-import uuid
 from datetime import datetime
 from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required
 from flask_restful import Resource, abort
 from models import db, DiagnosisResult, Disease, District, User
-from werkzeug.utils import secure_filename
-from dotenv import load_dotenv
-load_dotenv()
+import cloudinary.uploader
+
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -118,20 +115,22 @@ class DiagnosisResultResource(Resource):
         if not allowed_file(image.filename):
             abort(400, message="Invalid image format. Allowed: png, jpg, jpeg, gif.")
 
-        # Save image
-        filename = secure_filename(image.filename)
-        unique_filename = f"{uuid.uuid4()}_{filename}"
-        image_path = os.path.join(current_app.config["DIAGNOSIS_UPLOAD_FOLDER"], unique_filename)
-        image.save(image_path)
+        try:
+            # Upload the file to Cloudinary
+            upload_result = cloudinary.uploader.upload(image)
 
-        backend_url = os.getenv("BACKEND_URL")
+            # Get the URL of the uploaded image
+            image_url = upload_result.get('url')
+        except Exception as e:
+            return {"message": f"Image upload failed: {str(e)}"}, 404
+        
         # Create a new diagnosis result
         new_result = DiagnosisResult(
             userId=user_id,
             diseaseId=disease_id,
             districtId=district_id,
             date=datetime.utcnow(),
-            image_path=f"{backend_url}api/v1/diagnosis-result/image/{unique_filename}",
+            image_path=image_url,
             detected=detected
         )
 
