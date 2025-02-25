@@ -1,15 +1,9 @@
-import re
 import uuid
-from flask import Blueprint, current_app, jsonify, request
-from flask_restful import Api, Resource, abort
+from flask import current_app, jsonify, request
+from flask_restful import Resource, abort
 from models import db, Disease
-from werkzeug.utils import secure_filename
-import os
-from dotenv import load_dotenv
-load_dotenv()
+import cloudinary.uploader
 
-# backend_url = os.getenv("BACKEND_URL")
-backend_url = 'http://192.168.1.91:5000/'
 # Allowed extensions for images
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -60,11 +54,17 @@ class DiseaseResource(Resource):
             uploaded_files = request.files.getlist("images")
             for file in uploaded_files:
                 if file and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    unique_filename = f"{uuid.uuid4()}_{filename}"
-                    file_path = os.path.join(current_app.config["DISEASES_UPLOAD_FOLDER"], unique_filename)
-                    file.save(file_path)
-                    images.append(f"{backend_url}api/v1/disease/image/{unique_filename}")
+                    
+                    try:
+                        # Upload the file to Cloudinary
+                        upload_result = cloudinary.uploader.upload(file)
+
+                        # Get the URL of the uploaded image
+                        image_url = upload_result.get('url')
+                    except Exception as e:
+                        return {"message": f"Image upload failed: {str(e)}"}, 404
+                    
+                    images.append(image_url)
                 else:
                     return {"message": "Invalid file format. Allowed types: png, jpg, jpeg, gif."}, 400
 
@@ -117,11 +117,18 @@ class DiseaseResource(Resource):
             images = []
             for file in uploaded_files:
                 if file and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    unique_filename = f"{uuid.uuid4()}_{filename}"
-                    file_path = os.path.join(current_app.config["DISEASES_UPLOAD_FOLDER"], unique_filename)
-                    file.save(file_path)
-                    images.append(f"{backend_url}api/v1/disease/image/{unique_filename}")
+                    
+                    try:
+                    # Upload the file to Cloudinary
+                        upload_result = cloudinary.uploader.upload(file)
+
+                        # Get the URL of the uploaded image
+                        image_url = upload_result.get('url')
+                    except Exception as e:
+                        return {"message": f"Image upload failed: {str(e)}"}, 404
+                    
+                    images.append(image_url)
+                    
             disease.images = ",".join(images)  # Replace all images
 
         db.session.commit()
@@ -162,11 +169,15 @@ class DiseaseResource(Resource):
             new_images = []
             for file in uploaded_files:
                 if file and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    unique_filename = f"{uuid.uuid4()}_{filename}"
-                    file_path = os.path.join(current_app.config["DISEASES_UPLOAD_FOLDER"], unique_filename)
-                    file.save(file_path)
-                    new_images.append(f"{backend_url}api/v1/disease/image/{unique_filename}")
+                    try:
+                    # Upload the file to Cloudinary
+                        upload_result = cloudinary.uploader.upload(file)
+
+                        # Get the URL of the uploaded image
+                        image_url = upload_result.get('url')
+                    except Exception as e:
+                        return {"message": f"Image upload failed: {str(e)}"}, 404
+                    new_images.append(image_url)
 
             disease.images = ",".join(new_images)
 

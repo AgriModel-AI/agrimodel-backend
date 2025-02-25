@@ -7,8 +7,6 @@ diseaseApi = Api(diseaseBlueprint)
 
 # Import and register resources
 from .disease import DiseaseResource
-from .DiseaseSingleImageResource import DiseaseSingleImageResource
 
 # Add login and signup resources
 diseaseApi.add_resource(DiseaseResource, "")
-diseaseApi.add_resource(DiseaseSingleImageResource, "/image/<string:filename>")

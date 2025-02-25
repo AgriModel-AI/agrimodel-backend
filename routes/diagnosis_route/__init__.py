@@ -7,8 +7,6 @@ diagnosisApi = Api(diagnosisBlueprint)
 
 # Import and register resources
 from .diagnosisResult import DiagnosisResultResource
-from .diagnosisImageResource import DiagnosisImageResource
 
 # Add login and signup resources
 diagnosisApi.add_resource(DiagnosisResultResource, "")
-diagnosisApi.add_resource(DiagnosisImageResource, "/image/<string:filename>")

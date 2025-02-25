@@ -1,4 +1,4 @@
-from flask import current_app, request
+from flask import request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource
 from sqlalchemy import func, asc, desc
