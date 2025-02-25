@@ -6,14 +6,10 @@ from flask import abort, current_app, request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import UserDetails, db, User, District
-from werkzeug.utils import secure_filename
-from dotenv import load_dotenv
-load_dotenv()
+import cloudinary.uploader
 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-backend_url = 'http://192.168.1.91:5000/'
 
 # Utility function to check if a file is an allowed image type
 def allowed_file(filename):
@@ -68,7 +64,7 @@ class UserDetailsResource(Resource):
             "username": user.username,
             "email": user.email,
             "phone_number": user.phone_number,
-            "profilePicture": user.profilePicture if user.profilePicture else f'{backend_url}api/v1/user-details/profile-image/default.png',
+            "profilePicture": user.profilePicture if user.profilePicture else 'https://res.cloudinary.com/dpbonkkjd/image/upload/v1740514375/default_ioqwjq.png',
             "role": user.role,
             "names": user_details.names if user_details else user.username,
             "national_id": user_details.national_id if user_details else None,
@@ -140,15 +136,17 @@ class UserDetailsResource(Resource):
         # Handle profile image upload (optional)
         profile_image = files.get("profilePicture")
         profile_image_path = None
-        unique_filename = None
         if profile_image:
             if allowed_file(profile_image.filename):
-                filename = secure_filename(profile_image.filename)
-                unique_filename = f"{uuid.uuid4()}_{filename}"
-                profile_image_path = os.path.join(
-                    current_app.config["PROFILE_UPLOAD_FOLDER"], unique_filename
-                )
-                profile_image.save(profile_image_path)
+                try:
+                # Upload the file to Cloudinary
+                    upload_result = cloudinary.uploader.upload(profile_image)
+
+                    # Get the URL of the uploaded image
+                    image_url = upload_result.get('url')
+                    profile_image_path = image_url
+                except Exception as e:
+                    return {"message": f"Image upload failed: {str(e)}"}, 404
             else:
                 abort(400, description="Invalid profile picture format. Allowed: png, jpg, jpeg, gif.")
 
@@ -178,7 +176,8 @@ class UserDetailsResource(Resource):
 
             # Update User's profile picture and phone_number (if provided)
             if profile_image_path:
-                user.profilePicture = f"{backend_url}api/v1/user-details/profile-image/{unique_filename}"
+                user.profilePicture = image_url
+                
             user.phone_number = phone_number
 
             # Commit changes
