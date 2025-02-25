@@ -13,6 +13,7 @@ from flask import redirect, request, session
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 load_dotenv()
+import cloudinary.uploader
 
 
 from google.oauth2 import id_token
@@ -68,27 +69,27 @@ class CallbackResource(Resource):
             user = User.query.filter_by(email=email).first()
             
             if not user:
-                unique_filename = f"{uuid.uuid4()}_{secure_filename('google_profile.jpg')}"
-                profile_image_path = os.path.join(
-                    current_app.config["PROFILE_UPLOAD_FOLDER"], unique_filename
-                )
-
                 # Download the Google profile picture and save locally
                 if google_profile_picture:
                     response = requests.get(google_profile_picture)
                     if response.status_code == 200:
-                        with open(profile_image_path, "wb") as f:
-                            f.write(response.content)
+                        try:
+                            # Upload the file to Cloudinary
+                            upload_result = cloudinary.uploader.upload(response.content)
+
+                            # Get the URL of the uploaded image
+                            image_url = upload_result.get('url')
+                        except Exception as e:
+                            return {"message": f"Image upload failed: {str(e)}"}, 404
 
                 # Assign the local URL to the user's profile picture
-                profile_picture_url = f"{backend_url}api/v1/user-details/profile-image/{unique_filename}"
                 
                 user = User(
                     username=username,  # Ensure you are providing a username
                     email=email,
                     password=None,  # Assuming this is a Google signup, password can be None
                     phone_number=None,  # If not provided, this can also be None
-                    profilePicture=profile_picture_url,
+                    profilePicture=image_url,
                     role="farmer",  # Set default role
                     isVerified=True,
                     googleId = google_id,

@@ -26,9 +26,6 @@ def create_app(config_class=DevelopmentConfig):
         api_key=os.getenv("CLOUDINARY_API_KEY"),
         api_secret=os.getenv("CLOUDINARY_API_SECRET")
     )
-
-    if not os.path.exists(config_class.UPLOAD_FOLDER):
-        os.makedirs(config_class.UPLOAD_FOLDER)
         
     CORS(app, resources={r"/*": {"origins": "*"}}, methods=["GET", "DELETE","POST", "PUT", "PATCH","OPTIONS"], allow_headers=["Content-Type", "Authorization"], supports_credentials=True)
 
