@@ -48,3 +48,7 @@ def send_post_likes_to_users(data):
     """Broadcast new community data to all connected users."""
     socketio.emit('new_post_like', {'data': data})
     
+def send_post_comments_to_users(data):
+    """Broadcast new community data to all connected users."""
+    socketio.emit('new_post_comments', {'data': data})
+    

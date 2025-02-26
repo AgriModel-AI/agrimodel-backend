@@ -2,6 +2,7 @@ from flask import request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import Comment, db
+from routes.socketio import send_post_comments_to_users
 
 class CommentResource(Resource):
     @jwt_required()
@@ -38,7 +39,11 @@ class CommentResource(Resource):
 
         db.session.add(new_comment)
         db.session.commit()
-        return {"message": "Comment created successfully.", "data":{"commentId": new_comment.commentId, "content": new_comment.content, "createdAt": new_comment.createdAt.strftime("%Y-%m-%d %H:%M:%S"), "postId": new_comment.postId, "userId": new_comment.userId, "names": new_comment.user.details.names if new_comment.user.details else new_comment.user.username }}, 201
+        
+        data = {"commentId": new_comment.commentId, "content": new_comment.content, "createdAt": new_comment.createdAt.strftime("%Y-%m-%d %H:%M:%S"), "postId": new_comment.postId, "userId": new_comment.userId, "names": new_comment.user.details.names if new_comment.user.details else new_comment.user.username }
+        
+        send_post_comments_to_users(data)        
+        return {"message": "Comment created successfully.", "data": data}, 201
     
 
 class CommentListResource(Resource):
