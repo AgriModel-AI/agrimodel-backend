@@ -133,6 +133,7 @@ class CommunityListResource(Resource):
         )
         db.session.add(new_community)
         db.session.commit()
+        
         return {"message": "Community created successfully.", "communityId": new_community.communityId}, 201
 
 

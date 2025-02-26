@@ -1,4 +1,5 @@
 import uuid
+from dotenv import load_dotenv
 from flask import jsonify
 from sqlalchemy import asc, desc
 from flask_restful import Resource
@@ -8,9 +9,17 @@ from config import Config
 from models import Post, PostLike, UserCommunity, db
 from sqlalchemy.orm import selectinload
 import cloudinary.uploader
+import os
 
-# Allowed extensions for images
+from routes.socketio import send_post_likes_to_users
+
+# Load the .env file
+load_dotenv()
+
+
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+user_profile = os.getenv("USER_PROFILE")
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -63,7 +72,7 @@ class PostsResource(Resource):
                 "user": {
                     "userId": post.user.userId,
                     "names": post.user.details.names if post.user.details else post.user.username,
-                    "profilePicture": post.user.profilePicture
+                    "profilePicture": post.user.profilePicture if post.user.profilePicture else user_profile
                 },
                 "postId": post.postId,
                 "content": post.content,
@@ -151,7 +160,7 @@ class PostListResource(Resource):
                 "user": {
                     "userId": new_post.user.userId,
                     "names": new_post.user.details.names if new_post.user.details else new_post.user.username,
-                    "profilePicture": new_post.user.profilePicture
+                    "profilePicture": new_post.user.profilePicture if new_post.user.profilePicture else user_profile
                 },
                 "postId": new_post.postId,
                 "content": new_post.content,
@@ -276,4 +285,6 @@ class PostLikeResource(Resource):
             message = "Post liked successfully."
 
         db.session.commit()
+        
+        send_post_likes_to_users({"postId": postId, "likes": post.likes, "userId": userId})
         return {"message": message, "postId": postId, "likes": post.likes}, 200

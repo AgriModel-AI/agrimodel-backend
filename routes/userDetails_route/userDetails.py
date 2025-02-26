@@ -1,13 +1,20 @@
 from datetime import datetime
 import re
+from dotenv import load_dotenv
 from flask import abort, request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import UserDetails, db, User, District
 import cloudinary.uploader
+import os
 
+# Load the .env file
+load_dotenv()
 
+ 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+user_profile = os.getenv("USER_PROFILE")
 
 # Utility function to check if a file is an allowed image type
 def allowed_file(filename):
@@ -62,7 +69,7 @@ class UserDetailsResource(Resource):
             "username": user.username,
             "email": user.email,
             "phone_number": user.phone_number,
-            "profilePicture": user.profilePicture if user.profilePicture else 'https://res.cloudinary.com/dpbonkkjd/image/upload/v1740514375/default_ioqwjq.png',
+            "profilePicture": user.profilePicture if user.profilePicture else user_profile,
             "role": user.role,
             "names": user_details.names if user_details else user.username,
             "national_id": user_details.national_id if user_details else None,

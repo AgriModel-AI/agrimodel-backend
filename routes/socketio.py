@@ -25,6 +25,7 @@ def handle_connect(auth):
             connected_users[user_id] = request.sid
             join_room(user_id)
             print(f'User {user_id} connected with session ID {request.sid}')
+            
     except Exception:
         print("Token has expired")
         return False
@@ -42,3 +43,8 @@ def handle_disconnect():
 def send_notification_to_user(user_id, message):
     if user_id in connected_users:
         socketio.emit('new_notification', {'message': message}, room=user_id)
+
+def send_post_likes_to_users(data):
+    """Broadcast new community data to all connected users."""
+    socketio.emit('new_post_like', {'data': data})
+    
