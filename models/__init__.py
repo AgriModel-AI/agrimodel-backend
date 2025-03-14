@@ -15,3 +15,6 @@ from .District import District
 from .Province import Province
 from .PostLike import PostLike
 from .provincesAndDistrictsDataSeed import seed_provinces_and_districts
+from .UserSubscription import UserSubscription
+from .SubscriptionPlan import SubscriptionPlan
+from .Payment import Payment

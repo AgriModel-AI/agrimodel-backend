@@ -1,6 +1,5 @@
 from models import db
 from datetime import datetime
-from sqlalchemy.orm import relationship
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -21,10 +20,11 @@ class User(db.Model):
     authProvider = db.Column(db.String(50), default='local')  # Can be 'local' or 'google'
 
     # Relationships
-    diagnosisResults = relationship('DiagnosisResult', backref='user', lazy=True)
-    notifications = relationship('Notification', backref='user', lazy=True)
-    user_communities = relationship('UserCommunity', backref='user', lazy=True)
-    details = relationship('UserDetails',  uselist=False, backref='user', lazy=True)
+    diagnosisResults = db.relationship('DiagnosisResult', backref='user', lazy=True)
+    notifications = db.relationship('Notification', backref='user', lazy=True)
+    user_communities = db.relationship('UserCommunity', backref='user', lazy=True)
+    details = db.relationship('UserDetails',  uselist=False, backref='user', lazy=True)
+    subscriptions = db.relationship('UserSubscription', backref='subscriber', lazy=True)
 
     def __init__(self, username=None, password=None, email=None, phone_number=None, profilePicture=None, 
                  role='user', googleId=None, authProvider='local', isVerified=False, isBlocked=False):
