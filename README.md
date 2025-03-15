@@ -153,6 +153,44 @@ Make sure you have the following installed on your system:
 
 ---
 
+## Step 11: Running Tests and Coverage
+
+### Running Tests
+
+To run the test suite:
+
+```bash
+python -m unittest discover -s tests
+```
+
+### Running Tests with Coverage
+
+1. Run tests with coverage:
+
+```bash
+coverage run -m unittest discover -s tests
+```
+
+2. Generate a basic coverage report:
+
+```bash
+coverage report
+```
+
+3. For a detailed HTML report showing exactly which lines are covered:
+
+```bash
+coverage html
+```
+
+This creates an `htmlcov` directory. Open `htmlcov/index.html` in your browser to view the detailed coverage report.
+
+4. To generate an XML report (useful for CI/CD integration):
+
+```bash
+coverage xml
+```
+
 ### Additional Notes
 
 - Remember to activate your virtual environment every time you work on the project by running the activation command (as described in **Step 5**).

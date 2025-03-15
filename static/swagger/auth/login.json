@@ -1,0 +1,90 @@
+{
+"post": {
+    "tags": ["Authentication"],
+    "summary": "User login",
+    "description": "Standard login for users who registered with email and password",
+    "requestBody": {
+    "required": true,
+    "content": {
+        "application/json": {
+        "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                "email": {
+                    "type": "string",
+                    "format": "email"
+                },
+                "password": {
+                    "type": "string"
+                }
+                
+            }
+        }
+        }
+    }
+    },
+    "responses": {
+    "200": {
+        "description": "Login successful",
+        "content": {
+        "application/json": {
+            "schema": {
+                    "type": "object",
+                    "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Login successful."
+                    },
+                    "access_token": {
+                        "type": "string"
+                    },
+                    "refresh_token": {
+                        "type": "string"
+                    }
+                    
+                }
+            }
+        }
+        }
+    },
+    "400": {
+        "description": "Invalid request or credentials",
+        "content": {
+        "application/json": {
+            "schema": {
+                    "type": "object",
+                    "properties": {
+                    "message": {
+                        "type": "string"
+                    }
+                    
+                }
+            }
+        }
+        }
+    },
+    "403": {
+        "description": "Account issues",
+        "content": {
+        "application/json": {
+            "schema": {
+                    "type": "object",
+                    "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Your account is not verified."
+                    },
+                    "verification_required": {
+                        "type": "boolean",
+                        "example": true
+                    }
+                    }
+                
+            }
+        }
+        }
+    }
+    }
+}
+}

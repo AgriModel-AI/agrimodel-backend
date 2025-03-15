@@ -1,0 +1,53 @@
+{
+    "post": {
+      "tags": ["Authentication"],
+      "summary": "Refresh token",
+      "description": "Generate a new access token and refresh token using a valid refresh token.",
+      "security": [
+        {
+          "RefreshToken": []
+        }
+      ],
+      
+      "responses": {
+        "200": {
+          "description": "Tokens refreshed successfully",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "example": "Access token refreshed successfully."
+                  },
+                  "access_token": {
+                    "type": "string"
+                  },
+                  "refresh_token": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Invalid or expired refresh token",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "example": "Missing Authorization Header"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }

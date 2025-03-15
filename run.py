@@ -9,9 +9,10 @@ from config import DevelopmentConfig
 from models import User, UserSubscription, db
 from cli_commands import register_cli
 from flask_cors import CORS
+from flasgger import Swagger
 import redis
-
-from scheduler import init_scheduler
+from swagger_config import swagger_config, swagger_template
+from flask_swagger_ui import get_swaggerui_blueprint
 
 # Configure logging
 logging.basicConfig(
@@ -60,7 +61,23 @@ def create_app(config_class=DevelopmentConfig):
         except Exception as e:
             logging.warning(f"Failed to connect to Redis: {str(e)}. Distributed locking will be disabled.")
 
-    # Error handlers (existing code)
+    
+    swagger = Swagger(app, config=swagger_config, template=swagger_template)
+    
+     # Setup Swagger UI
+    SWAGGER_URL = '/api/v1/docs'  # URL for exposing Swagger UI
+    API_URL = '/static/swagger/swagger.json'  # Where to find the Swagger JSON file
+    
+    swaggerui_blueprint = get_swaggerui_blueprint(
+        SWAGGER_URL,
+        API_URL,
+        config={
+            'app_name': "MY API DOCS"
+        }
+    )
+    
+    app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
+    
     # Register global error handler
     @app.errorhandler(404)
     def not_found(error):
@@ -99,10 +116,11 @@ def create_app(config_class=DevelopmentConfig):
     jwt.init_app(app)
     mail.init_app(app)
     
-    # Initialize scheduler with Redis for distributed locking
-    init_scheduler(app, mail, db, User, UserSubscription, redis_client)
-    
-    socketio.init_app(app, cors_allowed_origins="*")
+    # Initialize scheduler only in non-testing environments
+    if not app.config.get('TESTING', False):
+        from scheduler import init_scheduler
+        init_scheduler(app, mail, db, User, UserSubscription, redis_client)
+        socketio.init_app(app, cors_allowed_origins="*")
     
     # Register blueprints (existing code)
     app.register_blueprint(authBlueprint)
