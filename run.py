@@ -50,6 +50,7 @@ def create_app(config_class=DevelopmentConfig):
     )
         
     CORS(app, resources={r"/*": {"origins": "*"}}, methods=["GET", "DELETE","POST", "PUT", "PATCH","OPTIONS"], allow_headers=["Content-Type", "Authorization"], supports_credentials=True)
+    app.config['CORS_HEADERS'] = 'Content-Type'
 
     # Initialize Redis for distributed locking if available
     redis_client = None
