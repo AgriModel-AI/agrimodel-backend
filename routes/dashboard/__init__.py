@@ -8,7 +8,8 @@ dashboardApi = Api(dashboardBlueprint)
 # Import and register resources
 from .Province import ProvinceResource
 from .DashboardStats import DashboardStatsResource
-from .Analysis import DiseaseSummaryResource, DiseaseTrendResource, ProvinceDignosisSummaryResource, RecentActivityResource, ReportsResource  
+from .Analysis import DiseaseSummaryResource, DiseaseTrendResource, ProvinceDignosisSummaryResource, RecentActivityResource
+from .Report import ReportsResource  
 
 
 # Add login and signup resources

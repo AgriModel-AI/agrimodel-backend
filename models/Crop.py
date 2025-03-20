@@ -14,7 +14,7 @@ class Crop(db.Model):
     createdAt = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationship - one crop can have many diseases
-    diseases = relationship('Disease', backref='crop', lazy=True)
+    # diseases = relationship('Disease', backref='crop', lazy=True)
     
     def serialize(self):
         return {

@@ -1,3 +1,4 @@
+from datetime import date
 from flask_restful import Resource
 from sqlalchemy import func
 from models import db, User, Community, Disease, Province, DiagnosisResult, District
@@ -14,6 +15,10 @@ class DashboardStatsResource(Resource):
 
             # Total diseases
             total_diseases = Disease.query.count()
+            
+            todaysCases = DiagnosisResult.query.filter(
+                func.date(DiagnosisResult.date) == date.today()
+            ).count()
 
             # Total cases per province
             provinces = Province.query.all()
@@ -92,6 +97,7 @@ class DashboardStatsResource(Resource):
             return {
                 "totalClients": total_clients,
                 "totalCommunities": total_communities,
+                "todaysCases": todaysCases,
                 "totalDiseases": total_diseases,
                 "provinceCases": province_cases,
                 "diseaseCasesOverMonths": disease_cases_over_months,
