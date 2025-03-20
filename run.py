@@ -4,7 +4,7 @@ import cloudinary
 from flask import Flask, jsonify
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-from routes import authBlueprint, mail, socketio, userDetailsBlueprint, communityBlueprint, diseaseBlueprint, clientsBlueprint, supportBlueprint, dashboardBlueprint, diagnosisBlueprint, notificationBlueprint, subscriptionBlueprint
+from routes import authBlueprint, mail, socketio, userDetailsBlueprint, communityBlueprint, diseaseBlueprint, cropBlueprint, clientsBlueprint, supportBlueprint, dashboardBlueprint, diagnosisBlueprint, notificationBlueprint, subscriptionBlueprint
 from config import DevelopmentConfig
 from models import User, UserSubscription, db
 from cli_commands import register_cli
@@ -24,7 +24,7 @@ logging.basicConfig(
     ]
 )
 
-def create_app(config_class=DevelopmentConfig):
+def create_app(config_class=DevelopmentConfig, allow=True):
     app = Flask(__name__)
     app.config.from_object(config_class)
     app.config["SECRET_KEY"] = "CodeSpecialist.com"
@@ -118,7 +118,7 @@ def create_app(config_class=DevelopmentConfig):
     mail.init_app(app)
     
     # Initialize scheduler only in non-testing environments
-    if not app.config.get('TESTING', False):
+    if allow:
         from scheduler import init_scheduler
         init_scheduler(app, mail, db, User, UserSubscription, redis_client)
         socketio.init_app(app, cors_allowed_origins="*")
@@ -127,6 +127,7 @@ def create_app(config_class=DevelopmentConfig):
     app.register_blueprint(authBlueprint)
     app.register_blueprint(userDetailsBlueprint)
     app.register_blueprint(communityBlueprint)
+    app.register_blueprint(cropBlueprint)
     app.register_blueprint(diseaseBlueprint)
     app.register_blueprint(clientsBlueprint)
     app.register_blueprint(supportBlueprint)

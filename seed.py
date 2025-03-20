@@ -1,7 +1,7 @@
 from models import db, Province, District
 from run import create_app
 
-app = create_app()
+app = create_app(allow=False)
 
 def seed_provinces_and_districts():
     with app.app_context():

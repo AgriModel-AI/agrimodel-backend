@@ -1,6 +1,6 @@
 from flask import jsonify, request
 from flask_restful import Resource, abort
-from models import db, Disease
+from models import Crop, db, Disease
 import cloudinary.uploader
 
 # Allowed extensions for images
@@ -19,6 +19,11 @@ def validate_min_length(value, field_name, min_length):
     if len(value.strip()) < min_length:
         abort(400, message=f"{field_name} must be at least {min_length} characters long.")
         
+def validate_crop_exists(crop_id):
+    crop = Crop.query.get(crop_id)
+    if not crop:
+        abort(400, message=f"Crop with ID {crop_id} does not exist.")
+    return crop
         
 class DiseaseResource(Resource):
     
@@ -38,15 +43,20 @@ class DiseaseResource(Resource):
         data = request.form
         name = data.get("name")
         description = data.get("description")
+        label = data.get("label")
         symptoms = data.get("symptoms")
         treatment = data.get("treatment")
         prevention = data.get("prevention")
+        crop_id = data.get("cropId")
         images = []
 
         # Validation
         validate_required_field(name, "Disease name")
         validate_min_length(name, "Disease name", 3)
         validate_required_field(description, "Description")
+        validate_required_field(label, "Label")
+        validate_required_field(crop_id, "Crop ID")
+        validate_crop_exists(crop_id)
 
         # Handle image uploads
         if 'images' in request.files:
@@ -74,9 +84,11 @@ class DiseaseResource(Resource):
         new_disease = Disease(
             name=name,
             description=description,
+            label=label,
             symptoms=symptoms,
             treatment=treatment,
             prevention=prevention,
+            cropId=crop_id,
             images=image_paths
         )
         db.session.add(new_disease)
@@ -94,21 +106,29 @@ class DiseaseResource(Resource):
         data = request.form
         name = data.get("name")
         description = data.get("description")
+        label = data.get("label")
         symptoms = data.get("symptoms")
         treatment = data.get("treatment")
         prevention = data.get("prevention")
+        crop_id = data.get("cropId")
 
         # Validation
         validate_required_field(name, "Disease name")
         validate_min_length(name, "Disease name", 3)
         validate_required_field(description, "Description")
+        validate_required_field(label, "Label")
+        validate_required_field(crop_id, "Crop ID")
+        validate_crop_exists(crop_id)
 
         # Update fields
         disease.name = name
         disease.description = description
+        disease.label = label
         disease.symptoms = symptoms
         disease.treatment = treatment
         disease.prevention = prevention
+        disease.cropId = crop_id
+        
 
         # Handle replacing images if new images are provided
         if 'images' in request.files:
@@ -149,6 +169,14 @@ class DiseaseResource(Resource):
         if "description" in data:
             description = data["description"]
             disease.description = description
+            
+        if "label" in data:
+            label = data["label"]
+            disease.label = label
+            
+        if "cropId" in data:
+            cropId = data["cropId"]
+            disease.cropId = cropId
 
         if "symptoms" in data:
             symptoms = data["symptoms"]

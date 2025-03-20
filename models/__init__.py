@@ -3,6 +3,7 @@ from .Comment import Comment
 from .Community import Community
 from .DiagnosisResult import DiagnosisResult
 from .Disease import Disease
+from .Crop import Crop
 from .Notification import Notification
 from .PasswordResetRequest import PasswordResetRequest
 from .Post import Post
