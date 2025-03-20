@@ -1,5 +1,5 @@
 from models import db, Province, District
-from app import create_app
+from run import create_app
 
 app = create_app()
 
