@@ -47,7 +47,7 @@ class CommentResource(Resource):
         user = User.query.filter_by(userId=userId).first()
         
         if user and post.userId != userId:  # Avoid sending a notification if the user comments on their own post
-            notification_message = f"{user.username} commented on your post."
+            notification_message = f"{user.username} commented on your post: {post.content}."
             notification = Notification(
                 message=notification_message,
                 userId=post.userId,

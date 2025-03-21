@@ -278,14 +278,14 @@ class PostLikeResource(Resource):
             # Unlike the post (remove like history entry)
             db.session.delete(existing_like)
             post.likes -= 1
-            action_message = f"{user.username} unliked your post."
+            action_message = f"{user.username} unliked your post: {post.content}."
             message = "Post unliked successfully."
         else:
             # Like the post (add like history entry)
             new_like = PostLike(postId=postId, userId=userId)
             db.session.add(new_like)
             post.likes += 1
-            action_message = f"{user.username} liked your post."
+            action_message = f"{user.username} liked your post: {post.content}."
             message = "Post liked successfully."
         
         if user and post.userId != userId:    

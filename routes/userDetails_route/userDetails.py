@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from flask import abort, request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy import Null
 from models import UserDetails, db, User, District
 import cloudinary.uploader
 import os
@@ -212,6 +213,82 @@ class UserDetailsResource(Resource):
             }, 200
 
         except Exception as e:
+            return {"message": "An error occurred"}, 500
+        
+class UserDetailsDistrictResource(Resource):
+
+    @jwt_required()
+    def post(self):
+        """Create or update user details for the authenticated user."""
+        user_identity = get_jwt_identity()  # Extract userId from JWT
+        userId = int(user_identity["userId"])
+
+        # Check if user details already exist
+        user_details = UserDetails.query.filter_by(userId=userId).first()
+        user = User.query.get(userId)
+
+        if not user:
+            return {"message": "User not found."}, 404
+
+        data = request.form  # Use form data for file upload
+        files = request.files
+
+        # Validate required fields for create or update
+        required_fields = ["district"]
+        for field in required_fields:
+            if field not in data or not data[field].strip():
+                abort(400, description=f"Field '{field}' is required and cannot be empty.")
+
+        # Validate district
+        district_name = data["district"]
+        district = District.query.filter_by(name=district_name).first()
+        if not district:
+            abort(400, description="Invalid district. Please provide a valid district name.")
+
+        try:
+            if not user_details:
+                # Create new user details
+                user_details = UserDetails(
+                    userId=userId,
+                    names=user.username,
+                    districtId=district.districtId
+                )
+                db.session.add(user_details)
+                message = "User details created successfully."
+            else:
+                # Update existing user details
+                user_details.names = user.username
+                user_details.districtId = district.districtId
+                message = "User details updated successfully."
+
+            # Commit changes
+            db.session.commit()
+
+            dob_str = user_details.dob.isoformat() if user_details and user_details.dob else None
+
+            district_obj = {
+                "id": district.districtId,
+                "provinceId": district.provinceId,
+                "name": district.name
+            }
+
+            return {
+                "userId": user.userId,
+                "username": user.username,
+                "email": user.email,
+                "phone_number": user.phone_number,
+                "profilePicture": user.profilePicture,
+                "role": user.role,
+                "names": user_details.names if user_details else None,
+                "national_id": user_details.national_id if user_details else None,
+                "district": district_obj,
+                "address": user_details.address if user_details else None,
+                "dob": dob_str,
+                "gender": user_details.gender if user_details else None
+            }, 200
+
+        except Exception as e:
+            print(e)
             return {"message": "An error occurred"}, 500
 
 
