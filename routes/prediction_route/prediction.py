@@ -5,7 +5,7 @@ from flask import jsonify, request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import Notification, db
-from tflite_inference import TFLitePlantDiseaseInferencePipeline
+from .tflite_inference import TFLitePlantDiseaseInferencePipeline
 
 # Initialize TFLite model pipeline
 pipeline = TFLitePlantDiseaseInferencePipeline(
@@ -24,7 +24,7 @@ def allowed_file(filename):
     """Check if the uploaded file has a valid extension."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-class NotificationResource(Resource):
+class PredictionResource(Resource):
     @jwt_required()
     def post(self):
         """Handles image upload and plant disease prediction."""

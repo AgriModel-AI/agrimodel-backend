@@ -1,8 +1,7 @@
-# Byte-compiled / optimized / DLL files
+# Ignore all byte-compiled files (.pyc) across all directories
 __pycache__/
 *.py[cod]
-*$py.class
-
+*.cpython-*.pyc
 # C extensions
 *.so
 
@@ -53,3 +52,12 @@ Thumbs.db
 
 uploads
 *.log
+*__pycache__/
+routes/__pycache__/mail.cpython-312.pyc
+models/__pycache__/VerificationCode.cpython-312.pyc
+routes/community_route/__pycache__/__init__.cpython-312.pyc
+routes/notification_route/__pycache__/notification.cpython-312.pyc
+__pycache__/config.cpython-312.pyc
+models/__pycache__/Comment.cpython-312.pyc
+__pycache__/run.cpython-312.pyc
+routes/__pycache__/__init__.cpython-312.pyc

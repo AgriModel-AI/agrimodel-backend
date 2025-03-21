@@ -10,5 +10,6 @@ from .clients_route import clientsBlueprint
 from .support_route import supportBlueprint
 from .dashboard import dashboardBlueprint
 from .notification_route import notificationBlueprint
-from .subscribe_route import subscriptionBlueprint
+# from .subscribe_route import subscriptionBlueprint
 from .crop_route import cropBlueprint
+from .prediction_route import predictBlueprint
