@@ -1,8 +1,9 @@
+from datetime import datetime
 from flask import request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import Comment, db
-from routes.socketio import send_post_comments_to_users
+from models import Comment, Notification, Post, User, db
+from routes.socketio import send_notification_to_user, send_post_comments_to_users
 
 class CommentResource(Resource):
     @jwt_required()
@@ -30,6 +31,10 @@ class CommentResource(Resource):
         data = request.json
         if 'content' not in data or not data['content']:
             return {"message": "Content is required."}, 400
+        
+        post = Post.query.filter_by(postId=postId).first()
+        if not post:
+            return {"message": "Post not found."}, 404
 
         new_comment = Comment(
             content=data['content'],
@@ -38,6 +43,19 @@ class CommentResource(Resource):
         )
 
         db.session.add(new_comment)
+        
+        user = User.query.filter_by(userId=userId).first()
+        
+        if user and post.userId != userId:  # Avoid sending a notification if the user comments on their own post
+            notification_message = f"{user.username} commented on your post."
+            notification = Notification(
+                message=notification_message,
+                userId=post.userId,
+                timestamp=datetime.utcnow()
+            )
+            db.session.add(notification)
+            send_notification_to_user(post.userId, notification_message)
+            
         db.session.commit()
         
         data = {"commentId": new_comment.commentId, "content": new_comment.content, "createdAt": new_comment.createdAt.strftime("%Y-%m-%d %H:%M:%S"), "postId": new_comment.postId, "userId": new_comment.userId, "names": new_comment.user.details.names if new_comment.user.details else new_comment.user.username }

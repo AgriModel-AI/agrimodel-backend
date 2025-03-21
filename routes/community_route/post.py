@@ -1,3 +1,4 @@
+from datetime import datetime
 import uuid
 from dotenv import load_dotenv
 from flask import jsonify
@@ -6,12 +7,12 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import request
 from config import Config
-from models import Post, PostLike, UserCommunity, db
+from models import Notification, Post, PostLike, User, UserCommunity, db
 from sqlalchemy.orm import selectinload
 import cloudinary.uploader
 import os
 
-from routes.socketio import send_post_likes_to_users
+from routes.socketio import send_notification_to_user, send_post_likes_to_users
 
 # Load the .env file
 load_dotenv()
@@ -271,18 +272,33 @@ class PostLikeResource(Resource):
 
         # Check if the user already liked the post
         existing_like = PostLike.query.filter_by(postId=postId, userId=userId).first()
+        user = User.query.filter_by(userId=userId).first()
 
         if existing_like:
             # Unlike the post (remove like history entry)
             db.session.delete(existing_like)
             post.likes -= 1
+            action_message = f"{user.username} unliked your post."
             message = "Post unliked successfully."
         else:
             # Like the post (add like history entry)
             new_like = PostLike(postId=postId, userId=userId)
             db.session.add(new_like)
             post.likes += 1
+            action_message = f"{user.username} liked your post."
             message = "Post liked successfully."
+        
+        if user and post.userId != userId:    
+            # Create notification
+            notification = Notification(
+                message=action_message,
+                userId=post.userId,
+                timestamp=datetime.utcnow()
+            )
+            db.session.add(notification)
+
+            # Send real-time notification
+            send_notification_to_user(post.userId, action_message)
 
         db.session.commit()
         
