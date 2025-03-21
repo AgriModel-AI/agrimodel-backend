@@ -7,6 +7,7 @@ from models import Province, db, Disease, DiagnosisResult, User, District
 from sqlalchemy import and_, case, distinct, func, extract, or_
 from datetime import datetime
 import logging
+import os
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -33,7 +34,7 @@ class ReportsResource(Resource):
     }
     
     # Company logo path
-    LOGO_PATH = 'http://localhost:3000/assets/logoBlack.png'
+    LOGO_PATH = os.getenv("LOGO")
     REPORT_TITLE = 'AgriModel Analytics'
     
     def __init__(self):
