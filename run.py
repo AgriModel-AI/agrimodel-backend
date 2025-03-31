@@ -118,8 +118,8 @@ def create_app(config_class=DevelopmentConfig):
     
     # Initialize scheduler only in non-testing environments
     if not app.config.get('TESTING', False):
-        from scheduler import init_scheduler
-        init_scheduler(app, mail, db, User, UserSubscription, redis_client)
+        # from scheduler import init_scheduler
+        # init_scheduler(app, mail, db, User, UserSubscription, redis_client)
         socketio.init_app(app, cors_allowed_origins="*")
     
     # Register blueprints (existing code)
@@ -142,5 +142,5 @@ app = create_app()
 
 if __name__ == "__main__":
     app = create_app()
-    # app.run()
+    app.run()
     socketio.run(app)

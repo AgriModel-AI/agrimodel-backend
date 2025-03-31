@@ -1,0 +1,131 @@
+{
+    "tags": [
+      {
+        "name": "User Community",
+        "description": "Operations related to user-community relationships"
+      }
+    ],
+    "security": [
+      {
+        "BearerAuth": []
+      }
+    ],
+    "get": {
+      "tags": ["User Community"],
+      "summary": "Get User Communities",
+      "description": "Retrieves a list of communities the authenticated user has joined.",
+      "security": [{ "BearerAuth": [] }],
+      "parameters": [
+        {
+          "name": "search",
+          "in": "query",
+          "required": false,
+          "schema": { "type": "string" },
+          "description": "Search query to filter communities by name or description."
+        },
+        {
+          "name": "sort_by",
+          "in": "query",
+          "required": false,
+          "schema": { "type": "string", "enum": ["name", "createdAt", "user_count", "post_count"] },
+          "description": "Field to sort communities by."
+        },
+        {
+          "name": "sort_order",
+          "in": "query",
+          "required": false,
+          "schema": { "type": "string", "enum": ["asc", "desc"] },
+          "description": "Sort order, either ascending or descending."
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": { "type": "integer" },
+          "description": "Maximum number of communities to retrieve."
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "schema": { "type": "integer" },
+          "description": "Pagination offset."
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "List of joined communities",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/UserCommunity" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "post": {
+      "tags": ["User Community"],
+      "summary": "Join a Community",
+      "description": "Allows the authenticated user to join a community.",
+      "security": [{ "BearerAuth": [] }],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "communityId": { "type": "integer", "example": 101 }
+              },
+              "required": ["communityId"]
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": { "description": "Successfully joined the community." },
+        "400": { "description": "User is already a member of this community." },
+        "404": { "description": "Community not found." }
+      }
+    },
+    "delete": {
+  "tags": ["User Community"],
+  "summary": "Leave a Community",
+  "description": "Allows the authenticated user to leave a community.",
+  "security": [{ "BearerAuth": [] }],
+  "parameters": [
+    {
+      "name": "communityId",
+      "in": "path",
+      "required": true,
+      "schema": { "type": "integer" },
+      "description": "ID of the community to leave."
+    }
+  ],
+  "responses": {
+    "200": { "description": "Successfully left the community." },
+    "404": { "description": "Membership not found." }
+  }
+},
+    "components": {
+      "schemas": {
+        "UserCommunity": {
+          "type": "object",
+          "properties": {
+            "communityId": { "type": "integer", "example": 101 },
+            "name": { "type": "string", "example": "Tech Enthusiasts" },
+            "image": { "type": "string", "example": "https://example.com/community.jpg" },
+            "description": { "type": "string", "example": "A community for tech lovers." },
+            "createdAt": { "type": "string", "format": "date-time", "example": "2024-03-22T12:00:00Z" },
+            "users": { "type": "integer", "example": 150 },
+            "posts": { "type": "integer", "example": 30 },
+            "joined": { "type": "boolean", "example": true }
+          }
+        }
+      }
+    }
+  }
+  

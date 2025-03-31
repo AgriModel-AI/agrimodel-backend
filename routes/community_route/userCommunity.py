@@ -11,6 +11,11 @@ class UserCommunityResource(Resource):
         user_identity = get_jwt_identity()
         userId = int(user_identity["userId"])
 
+        # Check if the community exists
+        community = Community.query.get(communityId)
+        if not community:
+            return {"message": "Community not found."}, 404
+
         # Check if the user is already a member of the community
         existing_membership = UserCommunity.query.filter_by(userId=userId, communityId=communityId).first()
         if existing_membership:
@@ -34,7 +39,7 @@ class UserCommunityResource(Resource):
         membership = UserCommunity.query.filter_by(userId=userId, communityId=communityId).first()
         
         if not membership:
-            return {"message": "Membership not found."}, 404
+            return {"message": "Community not found or you are not a member."}, 404
 
         db.session.delete(membership)
         db.session.commit()

@@ -1,221 +1,360 @@
-
 {
-    "get": {
     "tags": [
-        "Communities"
+      {
+        "name": "Community",
+        "description": "Operations related to community management"
+      }
     ],
-    "summary": "Get a list of communities",
-    "description": "Get a list of communities with optional filtering, sorting, and pagination.",
-    "security": [
+    "get": {
+      "tags": ["Community"],
+      "summary": "Get a list of communities",
+      "description": "Retrieve a list of communities with optional filtering, sorting, and pagination.",
+      "security": [
         {
-        "BearerAuth": []
+          "BearerAuth": []
         }
-    ],
-    "parameters": [
+      ],
+      "parameters": [
         {
-        "name": "search",
-        "in": "query",
-        "description": "Search text to filter communities by name or description",
-        "required": false,
-        "schema": {
+          "name": "search",
+          "in": "query",
+          "description": "Search text to filter communities by name or description",
+          "required": false,
+          "schema": {
             "type": "string"
-        }
+          }
         },
         {
-        "name": "sort_by",
-        "in": "query",
-        "description": "Field to sort by",
-        "required": false,
-        "schema": {
+          "name": "sort_by",
+          "in": "query",
+          "description": "Field to sort by",
+          "required": false,
+          "schema": {
             "type": "string",
             "enum": ["name", "createdAt", "user_count", "post_count"],
             "default": "createdAt"
-        }
+          }
         },
         {
-        "name": "sort_order",
-        "in": "query",
-        "description": "Sort direction",
-        "required": false,
-        "schema": {
+          "name": "sort_order",
+          "in": "query",
+          "description": "Sort direction",
+          "required": false,
+          "schema": {
             "type": "string",
             "enum": ["asc", "desc"],
             "default": "desc"
-        }
+          }
         },
         {
-        "name": "limit",
-        "in": "query",
-        "description": "Number of items to return",
-        "required": false,
-        "schema": {
+          "name": "limit",
+          "in": "query",
+          "description": "Number of items to return",
+          "required": false,
+          "schema": {
             "type": "integer",
             "minimum": 1
-        }
+          }
         },
         {
-        "name": "offset",
-        "in": "query",
-        "description": "Pagination offset",
-        "required": false,
-        "schema": {
+          "name": "offset",
+          "in": "query",
+          "description": "Pagination offset",
+          "required": false,
+          "schema": {
             "type": "integer",
             "minimum": 0,
             "default": 0
+          }
         }
-        }
-    ],
-    "responses": {
+      ],
+      "responses": {
         "200": {
-        "description": "Successfully retrieved communities",
-        "content": {
+          "description": "Successfully retrieved communities",
+          "content": {
             "application/json": {
-            "schema": {
+              "schema": {
                 "type": "object",
                 "properties": {
-                "data": {
+                  "data": {
                     "type": "array",
                     "items": {
-                    "type": "object",
-                    "properties": {
+                      "type": "object",
+                      "properties": {
                         "communityId": {
-                        "type": "integer"
+                          "type": "integer"
                         },
                         "name": {
-                        "type": "string"
+                          "type": "string"
                         },
                         "image": {
-                        "type": "string",
-                        "format": "uri"
+                          "type": "string",
+                          "format": "uri"
                         },
                         "description": {
-                        "type": "string"
+                          "type": "string"
                         },
                         "createdBy": {
-                        "type": "object",
-                        "properties": {
+                          "type": "object",
+                          "properties": {
                             "username": {
-                            "type": "string"
+                              "type": "string"
                             },
                             "email": {
-                            "type": "string",
-                            "format": "email"
+                              "type": "string",
+                              "format": "email"
                             }
-                        }
+                          }
                         },
                         "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
+                          "type": "string",
+                          "format": "date-time"
                         },
                         "users": {
-                        "type": "integer"
+                          "type": "integer"
                         },
                         "posts": {
-                        "type": "integer"
+                          "type": "integer"
                         }
+                      }
                     }
-                    }
+                  }
                 }
-                }
+              }
             }
-            }
-        }
+          }
         },
         "401": {
-        "description": "Unauthorized - JWT token is missing or invalid"
+          "description": "Unauthorized - JWT token is missing or invalid"
         }
-    }
+      }
     },
     "post": {
-    "tags": [
-        "Communities"
-    ],
-    "summary": "Create a new community",
-    "description": "Create a new community with name, description, and image.",
-    "security": [
+      "tags": ["Community"],
+      "summary": "Create a new community",
+      "description": "Admins can create a new community with name, description, and image.",
+      "security": [
         {
-        "BearerAuth": []
+          "BearerAuth": []
         }
-    ],
-    "requestBody": {
+      ],
+      "requestBody": {
         "required": true,
         "content": {
-        "multipart/form-data": {
+          "multipart/form-data": {
             "schema": {
-            "type": "object",
-            "required": ["name", "description", "image"],
-            "properties": {
+              "type": "object",
+              "required": ["name", "description", "image"],
+              "properties": {
                 "name": {
-                "type": "string",
-                "description": "Community name"
+                  "type": "string",
+                  "description": "Community name"
                 },
                 "description": {
-                "type": "string",
-                "description": "Community description"
+                  "type": "string",
+                  "description": "Community description"
                 },
                 "image": {
-                "type": "string",
-                "format": "binary",
-                "description": "Community image (png, jpg, jpeg, gif)"
+                  "type": "string",
+                  "format": "binary",
+                  "description": "Community image (png, jpg, jpeg, gif)"
                 }
+              }
             }
-            }
+          }
         }
-        }
-    },
-    "responses": {
+      },
+      "responses": {
         "201": {
-        "description": "Community created successfully",
-        "content": {
+          "description": "Community created successfully",
+          "content": {
             "application/json": {
-            "schema": {
+              "schema": {
                 "type": "object",
                 "properties": {
-                "message": {
+                  "message": {
                     "type": "string",
                     "example": "Community created successfully."
-                },
-                "communityId": {
+                  },
+                  "communityId": {
                     "type": "integer"
+                  }
                 }
-                }
+              }
             }
-            }
-        }
+          }
         },
         "400": {
-        "description": "Bad request - Missing or invalid parameters",
-        "content": {
+          "description": "Bad request - Missing or invalid parameters",
+          "content": {
             "application/json": {
-            "schema": {
+              "schema": {
                 "type": "object",
                 "properties": {
-                "message": {
+                  "message": {
                     "type": "string"
+                  }
                 }
-                }
+              }
             }
-            }
-        }
+          }
         },
         "401": {
-        "description": "Unauthorized - JWT token is missing or invalid"
+          "description": "Unauthorized - JWT token is missing or invalid"
         },
         "404": {
-        "description": "Not found - User not found or image upload failed",
-        "content": {
+          "description": "Not found - User not found or image upload failed",
+          "content": {
             "application/json": {
-            "schema": {
+              "schema": {
                 "type": "object",
                 "properties": {
-                "message": {
+                  "message": {
                     "type": "string"
+                  }
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "getCommunity": {
+      "tags": ["Community"],
+      "summary": "Get a specific community",
+      "parameters": [
+        {
+          "name": "communityId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "image": {
+                    "type": "string"
+                  }
                 }
+              }
             }
+          }
+        },
+        "404": {
+          "description": "Community not found",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "example": "Community not found"
+                  }
+                }
+              }
             }
+          }
         }
+      }
+    },
+    "put": {
+  "tags": ["Community"],
+  "summary": "Update a community",
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "requestBody": {
+    "required": true,
+    "content": {
+      "multipart/form-data": {
+        "schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Community name"
+            },
+            "description": {
+              "type": "string",
+              "description": "Community description"
+            },
+            "image": {
+              "type": "string",
+              "format": "binary",
+              "description": "Updated community image (png, jpg, jpeg, gif)"
+            }
+          }
         }
+      }
     }
+  },
+  "responses": {
+    "200": {
+      "description": "Community updated successfully",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string",
+                "example": "Community updated successfully."
+              }
+            }
+          }
+        }
+      }
+    },
+    "400": {
+      "description": "Bad request - Missing or invalid parameters",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "404": {
+      "description": "Community not found",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string",
+                "example": "Community not found"
+              }
+            }
+          }
+        }
+      }
     }
+  }
 }
+
+  }
+  
