@@ -67,30 +67,25 @@
       }
     },
     "post": {
-      "tags": ["User Community"],
-      "summary": "Join a Community",
-      "description": "Allows the authenticated user to join a community.",
-      "security": [{ "BearerAuth": [] }],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "communityId": { "type": "integer", "example": 101 }
-              },
-              "required": ["communityId"]
-            }
-          }
-        }
-      },
-      "responses": {
-        "201": { "description": "Successfully joined the community." },
-        "400": { "description": "User is already a member of this community." },
-        "404": { "description": "Community not found." }
-      }
-    },
+  "tags": ["User Community"],
+  "summary": "Join a Community",
+  "description": "Allows the authenticated user to join a community.",
+  "security": [{ "BearerAuth": [] }],
+  "parameters": [
+    {
+      "name": "communityId",
+      "in": "path",
+      "required": true,
+      "schema": { "type": "integer" },
+      "description": "ID of the community to join."
+    }
+  ],
+  "responses": {
+    "201": { "description": "Successfully joined the community." },
+    "400": { "description": "User is already a member of this community." },
+    "404": { "description": "Community not found." }
+  }
+},
     "delete": {
   "tags": ["User Community"],
   "summary": "Leave a Community",

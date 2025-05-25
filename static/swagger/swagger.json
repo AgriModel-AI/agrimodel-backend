@@ -32,8 +32,9 @@
 
     
     "/communities": { "$ref": "./community/community.json" },
-    "/communities/user-community" : { "$ref": "./community/userCommunity.json" },
-    "/communities/user-community/{communityId}" : { "$ref": "./community/userCommunity.json" }
+    "/communities/user-community/{communityId}" : { "$ref": "./community/userCommunity.json" },
+    "/diagnosis-result" : { "$ref": "./diagnosis/diagnosticResult.json" },
+    "/support" : { "$ref": "./support/requestSupport.json" }
    
 
   }

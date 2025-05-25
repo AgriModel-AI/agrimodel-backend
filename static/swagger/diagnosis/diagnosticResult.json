@@ -1,0 +1,144 @@
+{
+    "tags": [
+      {
+        "name": "Diagnosis Result",
+        "description": "Operations related to diagnosis result management"
+      }
+    ],
+    "security": [
+      {
+        "BearerAuth": []
+      }
+    ],
+    "get": {
+      "tags": ["Diagnosis Result"],
+      "summary": "Get Diagnosis Results",
+      "description": "Retrieves a list of all diagnosis results.",
+      "security": [{ "BearerAuth": [] }],
+      "responses": {
+        "200": {
+          "description": "List of diagnosis results",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/DiagnosisResult" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": { "description": "Internal server error" }
+      }
+    },
+    "post": {
+      "tags": ["Diagnosis Result"],
+      "summary": "Create Diagnosis Result",
+      "description": "Creates a new diagnosis result with optional image upload.",
+      "security": [{ "BearerAuth": [] }],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "multipart/form-data": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string",
+                  "description": "User ID of the person getting diagnosis"
+                },
+                "diseaseId": {
+                  "type": "string",
+                  "description": "Disease ID (optional)"
+                },
+                "districtId": {
+                  "type": "string",
+                  "description": "District ID"
+                },
+                "detected": {
+                  "type": "boolean",
+                  "description": "Whether the disease was detected"
+                },
+                "image": {
+                  "type": "string",
+                  "format": "binary",
+                  "description": "Image file (jpg, png, gif, etc.)"
+                }
+              },
+              "required": ["userId", "districtId", "detected"]
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Diagnosis result created successfully",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": { "type": "string", "example": "Diagnosis result created successfully" },
+                  "resultId": { "type": "string", "example": "abc123" }
+                }
+              }
+            }
+          }
+        },
+        "400": { "description": "Invalid input or file type" },
+        "404": { "description": "User or district not found" },
+        "500": { "description": "Internal server error" }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "BearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      },
+      "schemas": {
+        "DiagnosisResult": {
+          "type": "object",
+          "properties": {
+            "resultId": { "type": "string", "example": "res123" },
+            "date": { "type": "string", "format": "date-time", "example": "2024-08-20T14:00:00Z" },
+            "image_path": { "type": "string", "example": "/static/uploads/image123.jpg" },
+            "detected": { "type": "boolean", "example": true },
+            "user": { "$ref": "#/components/schemas/User" },
+            "disease": { "$ref": "#/components/schemas/Disease" },
+            "district": { "$ref": "#/components/schemas/District" }
+          }
+        },
+        "User": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "example": "u001" },
+            "username": { "type": "string", "example": "john_doe" },
+            "email": { "type": "string", "example": "john@example.com" },
+            "phone_number": { "type": "string", "example": "+250788123456" }
+          }
+        },
+        "Disease": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "example": "d001" },
+            "name": { "type": "string", "example": "Blight" }
+          }
+        },
+        "District": {
+          "type": "object",
+          "properties": {
+            "provinceName": { "type": "string", "example": "Eastern Province" },
+            "districtName": { "type": "string", "example": "Nyagatare" }
+          }
+        }
+      }
+    }
+  }
+  

@@ -1,0 +1,163 @@
+{
+    "tags": [
+      {
+        "name": "Support",
+        "description": "Operations related to support requests"
+      }
+    ],
+    "security": [
+      {
+        "BearerAuth": []
+      }
+    ],
+    "get": {
+      "tags": ["Support"],
+      "summary": "Get all Support Requests",
+      "description": "Retrieves all support requests submitted by users.",
+      "security": [{ "BearerAuth": [] }],
+      "responses": {
+        "200": {
+          "description": "List of support requests",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/SupportRequest" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": { "description": "Internal server error" }
+      }
+    },
+    "post": {
+      "tags": ["Support"],
+      "summary": "Create a Support Request",
+      "description": "Allows an authenticated user to create a support request.",
+      "security": [{ "BearerAuth": [] }],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["subject", "description", "type"],
+              "properties": {
+                "subject": { "type": "string" },
+                "description": { "type": "string" },
+                "type": {
+                  "type": "string",
+                  "enum": ["Technical Issue", "Prediction Issue", "Usage Help", "Feedback or Suggestions", "Other"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": { "description": "Support request created successfully" },
+        "400": { "description": "Missing or invalid input" },
+        "500": { "description": "Internal server error" }
+      }
+    },
+    "patch": {
+      "tags": ["Support"],
+      "summary": "Update Support Request Status",
+      "description": "Updates the status of an existing support request.",
+      "security": [{ "BearerAuth": [] }],
+      "parameters": [
+        {
+          "name": "id",
+          "in": "query",
+          "required": true,
+          "schema": { "type": "integer" },
+          "description": "The ID of the support request to update."
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["status"],
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "description": "New status of the request (e.g., PENDING, IN_PROGRESS, CLOSED)"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Required if status is CLOSED"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Required if status is CLOSED"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": { "description": "Support request updated successfully" },
+        "400": { "description": "Missing or invalid status, or required fields for CLOSED" },
+        "404": { "description": "Support request or user not found" },
+        "500": { "description": "Internal server error" }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "BearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      },
+      "schemas": {
+        "SupportRequest": {
+          "type": "object",
+          "properties": {
+            "requestId": { "type": "integer", "example": 1 },
+            "user": {
+              "type": "object",
+              "properties": {
+                "userId": { "type": "integer", "example": 101 },
+                "username": { "type": "string", "example": "john_doe" },
+                "email": { "type": "string", "example": "john@example.com" },
+                "role": { "type": "string", "example": "user" },
+                "isVerified": { "type": "boolean", "example": true },
+                "profilePicture": { "type": "string", "example": "https://example.com/profile.jpg" }
+              }
+            },
+            "subject": { "type": "string", "example": "Problem with prediction module" },
+            "description": { "type": "string", "example": "The model gives inaccurate predictions for my dataset." },
+            "type": {
+              "type": "string",
+              "example": "Prediction Issue"
+            },
+            "status": {
+              "type": "string",
+              "example": "PENDING"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2024-08-01T12:00:00Z"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2024-08-02T09:30:00Z"
+            }
+          }
+        }
+      }
+    }
+  }
+  
