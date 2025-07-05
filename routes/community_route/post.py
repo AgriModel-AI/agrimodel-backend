@@ -236,8 +236,12 @@ class PostResource(Resource):
             post.imageUrl = image_url
 
         db.session.commit()
-        return {"message": "Post updated successfully.", "postId": post.postId}, 200
-    
+        data = {
+                "postId": post.postId,
+                "imageUrl": post.imageUrl,
+                "content": post.content,
+            }
+        return {"message": "Post updated successfully.", "data": data}, 200
 
     @jwt_required()
     def delete(self, postId):
