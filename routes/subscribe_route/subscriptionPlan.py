@@ -21,14 +21,14 @@ class SubscriptionPlanListResource(Resource):
                 'planId': plan.planId,
                 'name': plan.name,
                 'description': plan.description,
+                'dailyAttempts': plan.dailyAttempts,
                 'monthlyPrice': plan.monthlyPrice,
                 'yearlyPrice': plan.yearlyPrice,
                 'yearlyDiscountPercentage': plan.yearlyDiscountPercentage,
-                'features': plan.features,
                 'isActive': plan.isActive
             })
             
-        return {'plans': result}, 200
+        return {'data': result}, 200
     
     @jwt_required()
     def post(self):
@@ -36,20 +36,31 @@ class SubscriptionPlanListResource(Resource):
         require_admin()
         
         data = request.get_json()
-        required_fields = ['name', 'monthlyPrice']
+        required_fields = ['name', 'monthlyPrice', 'description', 'dailyAttempts']
         for field in required_fields:
             if field not in data:
                 abort(400, message=f"Field '{field}' is required")
+        
+        monthly_price = data['monthlyPrice']
+        yearly_price = data.get('yearlyPrice')
+        yearly_discount = data.get('yearlyDiscountPercentage', 0)
+
+        if yearly_price is None:
+            if yearly_discount is None:
+                return {"message": "Provide yearlyPrice or yearlyDiscountPercentage."}, 400
+            if not isinstance(yearly_discount, (int, float)) or yearly_discount < 0:
+                return {"message": "Invalid yearlyDiscountPercentage."}, 400
+            yearly_price = monthly_price * 12 * (1 - yearly_discount / 100)
         
         # Create new plan
         new_plan = SubscriptionPlan(
             name=data['name'],
             description=data.get('description'),
-            monthlyPrice=data['monthlyPrice'],
-            yearlyPrice=data.get('yearlyPrice', 0),
-            yearlyDiscountPercentage=data.get('yearlyDiscountPercentage', 0),
-            features=data.get('features'),
-            isActive=data.get('isActive', True)
+            monthlyPrice=monthly_price,
+            yearlyPrice=yearly_price,
+            yearlyDiscountPercentage=yearly_discount,
+            isActive=data.get('isActive', True),
+            dailyAttempts=data.get('dailyAttempts', None)  # Allow None for unlimited attempts
         )
         
         # Calculate yearly price if not provided
@@ -61,7 +72,7 @@ class SubscriptionPlanListResource(Resource):
         
         return {
             'message': 'Subscription plan created successfully',
-            'planId': new_plan.planId
+            'data': new_plan.to_dict()
         }, 201
 
 class SubscriptionPlanResource(Resource):
@@ -71,16 +82,7 @@ class SubscriptionPlanResource(Resource):
         
         if plan:        
             return {
-                'planId': plan.planId,
-                'name': plan.name,
-                'description': plan.description,
-                'monthlyPrice': plan.monthlyPrice,
-                'yearlyPrice': plan.yearlyPrice,
-                'yearlyDiscountPercentage': plan.yearlyDiscountPercentage,
-                'features': plan.features,
-                'isActive': plan.isActive,
-                'createdAt': plan.createdAt.isoformat(),
-                'updatedAt': plan.updatedAt.isoformat()
+                'data': plan.to_dict()
             }, 200
         else:
             return {
@@ -113,16 +115,17 @@ class SubscriptionPlanResource(Resource):
                 # Recalculate yearly price if discount changes
                 if 'yearlyPrice' not in data:
                     plan.update_yearly_price()
-            if 'features' in data:
-                plan.features = data['features']
             if 'isActive' in data:
                 plan.isActive = data['isActive']
+            if 'dailyAttempts' in data:
+                plan.dailyAttempts = data['dailyAttempts']
                 
             plan.updatedAt = datetime.utcnow()
             db.session.commit()
             
             return {
-                'message': 'Subscription plan updated successfully'
+                'message': 'Subscription plan updated successfully',
+                'data': plan.to_dict() if plan else None
             }, 200
         else:
             return {

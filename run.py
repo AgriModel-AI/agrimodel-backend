@@ -4,8 +4,7 @@ import cloudinary
 from flask import Flask, jsonify
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-# from routes import authBlueprint, mail, socketio, userDetailsBlueprint, communityBlueprint, diseaseBlueprint, cropBlueprint, clientsBlueprint, supportBlueprint, dashboardBlueprint, diagnosisBlueprint, notificationBlueprint
-from routes import authBlueprint, mail, socketio, userDetailsBlueprint, communityBlueprint, diseaseBlueprint, cropBlueprint, clientsBlueprint, supportBlueprint, dashboardBlueprint, diagnosisBlueprint, notificationBlueprint, predictBlueprint, exploreBlueprint
+from routes import authBlueprint, mail, socketio, userDetailsBlueprint, communityBlueprint, diseaseBlueprint, cropBlueprint, clientsBlueprint, supportBlueprint, dashboardBlueprint, diagnosisBlueprint, notificationBlueprint, predictBlueprint, exploreBlueprint, subscriptionBlueprint
 from config import DevelopmentConfig
 from models import User, UserSubscription, db
 from cli_commands import register_cli
@@ -136,7 +135,7 @@ def create_app(config_class=DevelopmentConfig, allow=True):
     app.register_blueprint(diagnosisBlueprint)
     app.register_blueprint(notificationBlueprint)
     app.register_blueprint(predictBlueprint)
-    # app.register_blueprint(subscriptionBlueprint) 
+    app.register_blueprint(subscriptionBlueprint)
     app.register_blueprint(exploreBlueprint)
 
     register_cli(app)

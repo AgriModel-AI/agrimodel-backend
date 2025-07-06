@@ -36,12 +36,12 @@ class UserSubscriptionListResource(Resource):
                 'startDate': sub.startDate.isoformat(),
                 'endDate': sub.endDate.isoformat(),
                 'isActive': sub.isActive,
-                'autoRenew': sub.autoRenew,
                 'subscriptionType': sub.subscriptionType,
+                'paymentReference': sub.paymentReference,
                 'createdAt': sub.createdAt.isoformat()
             })
             
-        return {'subscriptions': result}, 200
+        return {'data': result}, 200
     
     @jwt_required()
     def post(self):
@@ -58,12 +58,20 @@ class UserSubscriptionListResource(Resource):
         # Validate subscription type
         if data['subscriptionType'] not in ['monthly', 'yearly']:
             abort(400, message="subscriptionType must be 'monthly' or 'yearly'")
+            
+        existing_subscription = UserSubscription.query.filter_by(
+            userId=current_user['userId'], 
+            isActive=True
+        ).first()
+        if existing_subscription and existing_subscription.is_subscription_active():
+            abort(400, message="User already has an active subscription")
         
         # Get the plan
-        plan = SubscriptionPlan.query.get(data['planId'])
+        planId = data['planId']
+        plan = SubscriptionPlan.query.get(planId)
         
         if not plan:
-            abort(404, message=f'Could not find Plan with ID {data['planId']}')
+            abort(404, message=f'Could not find Plan with ID {planId}')
         
         # Check if plan is active
         if not plan.isActive:
@@ -82,33 +90,41 @@ class UserSubscriptionListResource(Resource):
         payment = Payment(
             userId=current_user['userId'],
             amount=amount,
-            currency='USD',
+            currency='RWF',
             paymentStatus='completed',  # Simplified for this example
-            paymentMethod=data.get('paymentMethod', 'credit_card'),
+            paymentMethod=data.get('paymentMethod'),
             transactionId=data.get('transactionId')
         )
-        db.session.add(payment)
-        db.session.flush()  # Flush to get the payment reference ID
+        
+        try:
+            db.session.add(payment)
+            db.session.commit()
+            db.session.flush()
+        except Exception as e:
+            db.session.rollback()
+            abort(500, message=f"Failed to create subscription: {str(e)}")
         
         # Create the subscription
         subscription = UserSubscription(
             userId=current_user['userId'],
-            planId=data['planId'],
+            planId=planId,
             startDate=start_date,
             endDate=end_date,
             isActive=True,
-            autoRenew=data.get('autoRenew', True),
             subscriptionType=data['subscriptionType'],
             paymentReference=payment.paymentReference
         )
         
-        db.session.add(subscription)
-        db.session.commit()
+        try:
+            db.session.add(subscription)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            abort(500, message=f"Failed to create subscription: {str(e)}")
         
         return {
             'message': 'Subscription created successfully',
-            'subscriptionId': subscription.subscriptionId,
-            'endDate': subscription.endDate.isoformat()
+            'data': subscription.to_dict()
         }, 201
 
 class UserSubscriptionResource(Resource):
@@ -138,7 +154,6 @@ class UserSubscriptionResource(Resource):
                 'startDate': subscription.startDate.isoformat(),
                 'endDate': subscription.endDate.isoformat(),
                 'isActive': subscription.isActive,
-                'autoRenew': subscription.autoRenew,
                 'subscriptionType': subscription.subscriptionType,
                 'isCurrentlyActive': subscription.is_subscription_active(),
                 'createdAt': subscription.createdAt.isoformat(),
@@ -148,7 +163,7 @@ class UserSubscriptionResource(Resource):
     
     @jwt_required()
     def put(self, subscription_id):
-        """Update a subscription (toggle auto-renew, cancel, etc.)"""
+        """Update a subscription"""
         current_user = get_jwt_identity()
         
         subscription = UserSubscription.query.get(subscription_id)
@@ -161,10 +176,6 @@ class UserSubscriptionResource(Resource):
             abort(403, message="Access denied")
         
         data = request.get_json()
-        
-        # Fields that can be updated
-        if 'autoRenew' in data:
-            subscription.autoRenew = data['autoRenew']
             
         if 'isActive' in data and current_user['role'] == 'admin':
             # Only admins can directly set isActive
@@ -173,7 +184,6 @@ class UserSubscriptionResource(Resource):
         # Cancel subscription
         if data.get('cancel') == True and subscription.isActive:
             subscription.isActive = False
-            subscription.autoRenew = False
         
         subscription.updatedAt = datetime.utcnow()
         db.session.commit()
@@ -195,10 +205,8 @@ class UserSubscriptionResource(Resource):
         # Only admins or the subscription owner can cancel it
         if current_user['role'] != 'admin' and subscription.userId != current_user['userId']:
             abort(403, message="Access denied")
-        
-        # Instead of deleting, mark as inactive and turn off auto-renew
+            
         subscription.isActive = False
-        subscription.autoRenew = False
         subscription.updatedAt = datetime.utcnow()
         
         db.session.commit()
@@ -230,7 +238,6 @@ class UserSubscriptionsResource(Resource):
                 'endDate': sub.endDate.isoformat(),
                 'isActive': sub.isActive,
                 'isCurrentlyActive': sub.is_subscription_active(),
-                'autoRenew': sub.autoRenew,
                 'subscriptionType': sub.subscriptionType
             })
             
