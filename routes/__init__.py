@@ -13,3 +13,4 @@ from .notification_route import notificationBlueprint
 # from .subscribe_route import subscriptionBlueprint
 from .crop_route import cropBlueprint
 from .prediction_route import predictBlueprint
+from .explore_route import exploreBlueprint
