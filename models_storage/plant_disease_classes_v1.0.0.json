@@ -1,0 +1,22 @@
+{
+  "plant_model_path": "tflite_models/plant_model.tflite",
+  "coffee_model_path": "tflite_models/coffee_model.tflite",
+  "banana_model_path": "tflite_models/banana_model.tflite",
+  "plant_classes": [
+    "coffee",
+    "banana",
+    "other"
+  ],
+  "coffee_disease_classes": [
+    "healthy",
+    "leaf_rust",
+    "coffee_berry_disease",
+    "red_spider_mite"
+  ],
+  "banana_disease_classes": [
+    "healthy",
+    "black_sigatoka",
+    "yellow_sigatoka",
+    "panama_disease"
+  ]
+}

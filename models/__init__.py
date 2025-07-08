@@ -21,3 +21,5 @@ from .SubscriptionPlan import SubscriptionPlan
 from .UserDailyUsage import UserDailyUsage
 from .Payment import Payment
 from .Explore import Explore, ExploreType
+from .ModelVersion import ModelVersion
+from .ModelRating import ModelRating

@@ -23,7 +23,7 @@ class Config:
     GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
 
     # Image upload configurations
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max upload size
+    MAX_CONTENT_LENGTH = 100 * 1024 * 1024  # 16 MB max upload size
     ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
     
     @staticmethod

@@ -1,6 +1,6 @@
 from flask import request
 from flask_restful import Resource, abort
-from models import db, UserSubscription, SubscriptionPlan, User, Payment
+from models import db, UserSubscription, SubscriptionPlan, Payment
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
 
@@ -25,7 +25,7 @@ class UserSubscriptionListResource(Resource):
             subscriptions = query.all()
         else:
             # Regular users can only see their own subscriptions
-            subscriptions = UserSubscription.query.filter_by(userId=current_user['userId']).all()
+            subscriptions = UserSubscription.query.filter_by(userId=current_user['userId'], isActive=True).all()
         
         result = []
         for sub in subscriptions:
@@ -33,6 +33,8 @@ class UserSubscriptionListResource(Resource):
                 'subscriptionId': sub.subscriptionId,
                 'userId': sub.userId,
                 'planId': sub.planId,
+                'dailyAttempts': sub.dailyAttempts,
+                "isPlanFree": sub.isPlanFree,
                 'startDate': sub.startDate.isoformat(),
                 'endDate': sub.endDate.isoformat(),
                 'isActive': sub.isActive,
@@ -59,23 +61,33 @@ class UserSubscriptionListResource(Resource):
         if data['subscriptionType'] not in ['monthly', 'yearly']:
             abort(400, message="subscriptionType must be 'monthly' or 'yearly'")
             
-        existing_subscription = UserSubscription.query.filter_by(
-            userId=current_user['userId'], 
-            isActive=True
-        ).first()
-        if existing_subscription and existing_subscription.is_subscription_active():
-            abort(400, message="User already has an active subscription")
-        
         # Get the plan
         planId = data['planId']
         plan = SubscriptionPlan.query.get(planId)
         
         if not plan:
             abort(404, message=f'Could not find Plan with ID {planId}')
-        
-        # Check if plan is active
+            
         if not plan.isActive:
             abort(400, message="Selected subscription plan is not available")
+            
+         # Cannot directly subscribe to a free plan
+        if plan.isPlanFree:
+            abort(400, message="Cannot subscribe to free plan. Free plan is automatically assigned.")
+            
+        existing_subscription = UserSubscription.query.filter_by(
+            userId=current_user['userId'], 
+            isActive=True
+        ).first()
+        # if existing_subscription and existing_subscription.is_subscription_active():
+        #     abort(400, message="User already has an active subscription")
+        
+        if existing_subscription and existing_subscription.is_subscription_active():
+            # Deactivate current subscription if it exists
+            existing_subscription.isActive = False
+            db.session.commit()
+        
+        # Check if plan is active
         
         # Set subscription end date based on type
         start_date = datetime.utcnow()
@@ -108,6 +120,8 @@ class UserSubscriptionListResource(Resource):
         subscription = UserSubscription(
             userId=current_user['userId'],
             planId=planId,
+            dailyAttempts=plan.dailyAttempts,
+            isPlanFree=plan.isPlanFree,
             startDate=start_date,
             endDate=end_date,
             isActive=True,
@@ -151,6 +165,8 @@ class UserSubscriptionResource(Resource):
                 'userId': subscription.userId,
                 'planId': subscription.planId,
                 'planName': plan.name if plan else 'Unknown Plan',
+                'dailyAttempts': subscription.dailyAttempts,
+                "isPlanFree": subscription.isPlanFree,
                 'startDate': subscription.startDate.isoformat(),
                 'endDate': subscription.endDate.isoformat(),
                 'isActive': subscription.isActive,
@@ -234,6 +250,8 @@ class UserSubscriptionsResource(Resource):
                 'subscriptionId': sub.subscriptionId,
                 'planId': sub.planId,
                 'planName': plan.name if plan else 'Unknown Plan',
+                'dailyAttempts': sub.dailyAttempts,
+                "isPlanFree": sub.isPlanFree,
                 'startDate': sub.startDate.isoformat(),
                 'endDate': sub.endDate.isoformat(),
                 'isActive': sub.isActive,

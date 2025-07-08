@@ -25,6 +25,7 @@ class SubscriptionPlanListResource(Resource):
                 'monthlyPrice': plan.monthlyPrice,
                 'yearlyPrice': plan.yearlyPrice,
                 'yearlyDiscountPercentage': plan.yearlyDiscountPercentage,
+                'isPlanFree': plan.isPlanFree,
                 'isActive': plan.isActive
             })
             
@@ -60,6 +61,7 @@ class SubscriptionPlanListResource(Resource):
             yearlyPrice=yearly_price,
             yearlyDiscountPercentage=yearly_discount,
             isActive=data.get('isActive', True),
+            isPlanFree=data.get('isPlanFree', False),
             dailyAttempts=data.get('dailyAttempts', None)  # Allow None for unlimited attempts
         )
         
@@ -117,6 +119,10 @@ class SubscriptionPlanResource(Resource):
                     plan.update_yearly_price()
             if 'isActive' in data:
                 plan.isActive = data['isActive']
+                
+            if 'isPlanFree' in data:
+                plan.isPlanFree = data['isPlanFree']
+                
             if 'dailyAttempts' in data:
                 plan.dailyAttempts = data['dailyAttempts']
                 

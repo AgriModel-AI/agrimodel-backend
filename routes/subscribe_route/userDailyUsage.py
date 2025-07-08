@@ -2,7 +2,7 @@ from flask import request
 from flask_restful import Resource, abort
 from models import db, UserDailyUsage, UserSubscription, SubscriptionPlan, User
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 
 class UserDailyUsageResource(Resource):
@@ -45,8 +45,12 @@ class UserDailyUsageResource(Resource):
                 },
                 "subscription": {
                     "subscriptionId": subscription.subscriptionId,
+                    "userId": user_id,
+                    "isActive": subscription.isActive,
                     "planId": plan.planId,
                     "planName": plan.name,
+                    'dailyAttempts': subscription.dailyAttempts,
+                    'isPlanFree': subscription.isPlanFree,
                     "startDate": subscription.startDate.isoformat(),
                     "endDate": subscription.endDate.isoformat(),
                     "daysRemaining": (subscription.endDate - datetime.utcnow()).days,
@@ -101,7 +105,11 @@ class UserDailyUsageResource(Resource):
                     "subscription": {
                         "subscriptionId": subscription.subscriptionId,
                         "planId": plan.planId,
+                        "userId": user_id,
+                        "isActive": subscription.isActive,
                         "planName": plan.name,
+                        'dailyAttempts': subscription.dailyAttempts,
+                        'isPlanFree': subscription.isPlanFree,
                         "startDate": subscription.startDate.isoformat(),
                         "endDate": subscription.endDate.isoformat(),
                         "daysRemaining": (subscription.endDate - datetime.utcnow()).days,
@@ -126,7 +134,11 @@ class UserDailyUsageResource(Resource):
                     "subscription": {
                         "subscriptionId": subscription.subscriptionId,
                         "planId": plan.planId,
+                        "userId": user_id,
+                        "isActive": subscription.isActive,
                         "planName": plan.name,
+                        'dailyAttempts': subscription.dailyAttempts,
+                        'isPlanFree': subscription.isPlanFree,
                         "startDate": subscription.startDate.isoformat(),
                         "endDate": subscription.endDate.isoformat(),
                         "daysRemaining": (subscription.endDate - datetime.utcnow()).days,
@@ -145,14 +157,34 @@ class UserDailyUsageResource(Resource):
             UserSubscription.endDate > datetime.utcnow()
         ).order_by(UserSubscription.endDate.desc()).first()
         
-        if not subscription:
+        if subscription:
+            plan = SubscriptionPlan.query.get(subscription.planId)
+            if plan and plan.isActive:
+                return subscription, plan
+        
+        # If no active subscription found, get the free plan
+        free_plan = SubscriptionPlan.query.filter_by(isPlanFree=True, isActive=True).first()
+        
+        if not free_plan:
             return None, None
         
-        plan = SubscriptionPlan.query.get(subscription.planId)
-        if not plan or not plan.isActive:
-            return None, None
-            
-        return subscription, plan
+        # Create a virtual subscription for the free plan
+        virtual_subscription = type('obj', (object,), {
+            'subscriptionId': None,
+            'planId': free_plan.planId,
+            "userId": user_id,
+            "isActive": free_plan.isActive,
+            "planName": free_plan.name,
+            'dailyAttempts': free_plan.dailyAttempts,
+            'isPlanFree': free_plan.isPlanFree,
+            'startDate': datetime.utcnow(),
+            'endDate': datetime.utcnow() + timedelta(days=36500),
+            'daysRemaining': datetime.utcnow() + timedelta(days=36500),
+            'isActive': True,
+            'subscriptionType': 'free',
+        })
+        
+        return virtual_subscription, free_plan
     
     def _get_or_create_usage(self, user_id):
         """Get or create today's usage record"""

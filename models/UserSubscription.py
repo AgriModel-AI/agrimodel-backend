@@ -7,6 +7,8 @@ class UserSubscription(db.Model):
     subscriptionId = db.Column(db.Integer, primary_key=True, autoincrement=True)
     userId = db.Column(db.Integer, db.ForeignKey('users.userId'), nullable=False)
     planId = db.Column(db.Integer, db.ForeignKey('subscription_plans.planId'), nullable=False)
+    dailyAttempts = db.Column(db.Integer, nullable=True)
+    isPlanFree = db.Column(db.Boolean, default=False)
     startDate = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     endDate = db.Column(db.DateTime, nullable=False)
     isActive = db.Column(db.Boolean, default=True)
@@ -23,6 +25,8 @@ class UserSubscription(db.Model):
             "subscriptionId": self.subscriptionId,
             "userId": self.userId,
             "planId": self.planId,
+            "dailyAttempts": self.dailyAttempts,
+            "isPlanFree": self.isPlanFree,
             "startDate": self.startDate.isoformat(),
             "endDate": self.endDate.isoformat(),
             "isActive": self.isActive,

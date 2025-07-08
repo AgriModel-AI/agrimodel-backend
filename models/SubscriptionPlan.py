@@ -12,11 +12,9 @@ class SubscriptionPlan(db.Model):
     yearlyPrice = db.Column(db.Float, nullable=False)
     yearlyDiscountPercentage = db.Column(db.Float, default=0)
     isActive = db.Column(db.Boolean, default=True)
+    isPlanFree = db.Column(db.Boolean, default=False)
     createdAt = db.Column(db.DateTime, default=datetime.utcnow)
     updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Relationship
-    subscriptions = db.relationship('UserSubscription', backref='plan', lazy=True)
     
     def calculate_yearly_price(self):
         """Calculate yearly price after discount"""
@@ -25,7 +23,8 @@ class SubscriptionPlan(db.Model):
     def update_yearly_price(self):
         """Update yearly price based on monthly price and discount"""
         self.yearlyPrice = self.calculate_yearly_price()
-        
+    
+    # Update to_dict method
     def to_dict(self):
         return {
             "planId": self.planId,
@@ -36,6 +35,7 @@ class SubscriptionPlan(db.Model):
             "yearlyPrice": self.yearlyPrice,
             "yearlyDiscountPercentage": self.yearlyDiscountPercentage,
             "isActive": self.isActive,
+            "isPlanFree": self.isPlanFree,
             "createdAt": self.createdAt.isoformat(),
             "updatedAt": self.updatedAt.isoformat()
         }

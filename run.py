@@ -4,7 +4,7 @@ import cloudinary
 from flask import Flask, jsonify
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-from routes import authBlueprint, mail, socketio, userDetailsBlueprint, communityBlueprint, diseaseBlueprint, cropBlueprint, clientsBlueprint, supportBlueprint, dashboardBlueprint, diagnosisBlueprint, notificationBlueprint, predictBlueprint, exploreBlueprint, subscriptionBlueprint
+from routes import authBlueprint, mail, socketio, userDetailsBlueprint, communityBlueprint, diseaseBlueprint, cropBlueprint, clientsBlueprint, supportBlueprint, dashboardBlueprint, diagnosisBlueprint, notificationBlueprint, predictBlueprint, exploreBlueprint, subscriptionBlueprint, modelsBlueprint
 from config import DevelopmentConfig
 from models import User, UserSubscription, db
 from cli_commands import register_cli
@@ -29,8 +29,13 @@ def create_app(config_class=DevelopmentConfig, allow=True):
     app.config.from_object(config_class)
     app.config["SECRET_KEY"] = "CodeSpecialist.com"
     
+    app.config['MODEL_STORAGE'] = os.environ.get('MODEL_STORAGE', './models_storage')
+    os.makedirs(app.config['MODEL_STORAGE'], exist_ok=True)
+    
+    # Ensure model storage directory exists
+    
     # Add scheduler configuration
-    app.config['SCHEDULER_API_ENABLED'] = False  # Set to True if you want to use the REST API
+    app.config['SCHEDULER_API_ENABLED'] = False
     app.config['SCHEDULER_PERSISTENT'] = True
     app.config['SUBSCRIPTION_CHECK_HOUR'] = 9
     app.config['SUBSCRIPTION_CHECK_MINUTE'] = 0
@@ -137,6 +142,7 @@ def create_app(config_class=DevelopmentConfig, allow=True):
     app.register_blueprint(predictBlueprint)
     app.register_blueprint(subscriptionBlueprint)
     app.register_blueprint(exploreBlueprint)
+    app.register_blueprint(modelsBlueprint)
 
     register_cli(app)
 
