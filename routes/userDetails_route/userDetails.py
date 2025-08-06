@@ -239,6 +239,7 @@ class UserDetailsDistrictResource(Resource):
             if field not in data or not data[field].strip():
                 abort(400, description=f"Field '{field}' is required and cannot be empty.")
 
+        print(data["district"])
         # Validate district
         district_name = data["district"]
         district = District.query.filter_by(name=district_name).first()
