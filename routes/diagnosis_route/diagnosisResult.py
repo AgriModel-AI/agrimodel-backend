@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask import request, jsonify
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_restful import Resource, abort
 from models import db, DiagnosisResult, Disease, District, User
 import cloudinary.uploader
@@ -41,7 +41,8 @@ class DiagnosisResultResource(Resource):
                 },
                 "date": result.date.isoformat(),
                 "image_path": result.image_path,
-                "detected": result.detected
+                "detected": result.detected,
+                "rated": result.rated
             })
 
         else:
@@ -70,7 +71,8 @@ class DiagnosisResultResource(Resource):
             },
             "date": result.date.isoformat(),
             "image_path": result.image_path,
-            "detected": result.detected
+            "detected": result.detected,
+            "rated": result.rated
         }
 
     @jwt_required()
@@ -141,3 +143,36 @@ class DiagnosisResultResource(Resource):
         except Exception as e:
             db.session.rollback()
             abort(500, message=f"An error occurred while saving the diagnosis result: {str(e)}")
+            
+            
+class UserDiagnosisResultsResource(Resource):
+
+    @jwt_required()
+    def get(self):
+        """Get all diagnosis results for a specific user with full disease details."""
+        user_identity = get_jwt_identity()
+        user_id = int(user_identity["userId"])
+        user = User.query.get(user_id)
+        if not user:
+            return {"message": "User not found."}, 404
+
+        results = DiagnosisResult.query.filter_by(userId=user_id).all()
+        return jsonify({
+            "data": [self.serialize_result(result) for result in results]
+        })
+
+    def serialize_result(self, result):
+        return {
+            "resultId": result.resultId,
+            "userId": result.userId,
+            "disease": result.disease.serialize() if result.disease else None,
+            "district": {
+                "provinceName": result.district.province.name if result.district and result.district.province else None,
+                "districtName": result.district.name if result.district else None,
+            },
+            "date": result.date.isoformat(),
+            "image_path": result.image_path,
+            "detected": result.detected,
+            "model_version": result.modelVersion if result.modelVersion else '1.0.0',
+            "rated": result.rated
+        }

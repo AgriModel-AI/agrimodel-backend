@@ -1,12 +1,12 @@
 import os
 import logging
 import cloudinary
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-from routes import authBlueprint, mail, socketio, userDetailsBlueprint, communityBlueprint, diseaseBlueprint, cropBlueprint, clientsBlueprint, supportBlueprint, dashboardBlueprint, diagnosisBlueprint, notificationBlueprint, predictBlueprint, exploreBlueprint, subscriptionBlueprint, modelsBlueprint
+from routes import authBlueprint, mail, socketio, userDetailsBlueprint, communityBlueprint, diseaseBlueprint, cropBlueprint, clientsBlueprint, supportBlueprint, dashboardBlueprint, diagnosisBlueprint, notificationBlueprint, predictBlueprint, exploreBlueprint, modelsBlueprint
 from config import DevelopmentConfig
-from models import User, UserSubscription, db
+from models import User, db
 from cli_commands import register_cli
 from flask_cors import CORS
 from flasgger import Swagger
@@ -31,17 +31,6 @@ def create_app(config_class=DevelopmentConfig, allow=True):
     
     app.config['MODEL_STORAGE'] = os.environ.get('MODEL_STORAGE', './models_storage')
     os.makedirs(app.config['MODEL_STORAGE'], exist_ok=True)
-    
-    # Ensure model storage directory exists
-    
-    # Add scheduler configuration
-    app.config['SCHEDULER_API_ENABLED'] = False
-    app.config['SCHEDULER_PERSISTENT'] = True
-    app.config['SUBSCRIPTION_CHECK_HOUR'] = 9
-    app.config['SUBSCRIPTION_CHECK_MINUTE'] = 0
-    app.config['SUBSCRIPTION_EXPIRY_HOUR'] = 0
-    app.config['SUBSCRIPTION_EXPIRY_MINUTE'] = 5
-    app.config['SCHEDULER_HEARTBEAT_MINUTES'] = 60
 
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
     
@@ -122,11 +111,22 @@ def create_app(config_class=DevelopmentConfig, allow=True):
     jwt.init_app(app)
     mail.init_app(app)
     
-    # Initialize scheduler only in non-testing environments
-    if allow:
-        from scheduler import init_scheduler
-        init_scheduler(app, mail, db, User, UserSubscription, redis_client)
-        socketio.init_app(app, cors_allowed_origins="*")
+    # Ensure the uploads directories exist
+    os.makedirs('static/uploads/posts', exist_ok=True)
+    os.makedirs('static/uploads/communities', exist_ok=True)
+    os.makedirs('static/uploads/diseases', exist_ok=True)
+    os.makedirs('static/uploads/explore', exist_ok=True)
+    os.makedirs('static/uploads/images', exist_ok=True)  # For diagnosis results
+    
+    # Custom route for serving files from upload directory with proper caching
+    # Update this function in your app.py
+    @app.route('/static/uploads/<path:filename>')
+    def uploaded_files(filename):
+        response = send_from_directory('static/uploads', filename)
+        # Set cache control headers manually
+        cache_timeout = app.config.get('STATIC_CACHE_TIMEOUT', 2592000)  # 30 days by default
+        response.headers['Cache-Control'] = f'public, max-age={cache_timeout}'
+        return response
     
     # Register blueprints (existing code)
     app.register_blueprint(authBlueprint)
@@ -140,7 +140,6 @@ def create_app(config_class=DevelopmentConfig, allow=True):
     app.register_blueprint(diagnosisBlueprint)
     app.register_blueprint(notificationBlueprint)
     app.register_blueprint(predictBlueprint)
-    app.register_blueprint(subscriptionBlueprint)
     app.register_blueprint(exploreBlueprint)
     app.register_blueprint(modelsBlueprint)
 

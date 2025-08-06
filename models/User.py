@@ -24,7 +24,6 @@ class User(db.Model):
     notifications = db.relationship('Notification', backref='user', lazy=True)
     user_communities = db.relationship('UserCommunity', backref='user', lazy=True)
     details = db.relationship('UserDetails',  uselist=False, backref='user', lazy=True)
-    subscriptions = db.relationship('UserSubscription', backref='subscriber', lazy=True)
 
     def __init__(self, username=None, password=None, email=None, phone_number=None, profilePicture=None, 
                  role='user', googleId=None, authProvider='local', isVerified=False, isBlocked=False):

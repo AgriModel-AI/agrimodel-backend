@@ -6,7 +6,8 @@ diagnosisApi = Api(diagnosisBlueprint)
 
 
 # Import and register resources
-from .diagnosisResult import DiagnosisResultResource
+from .diagnosisResult import DiagnosisResultResource, UserDiagnosisResultsResource
 
 # Add login and signup resources
 diagnosisApi.add_resource(DiagnosisResultResource, "")
+diagnosisApi.add_resource(UserDiagnosisResultsResource, "/user")

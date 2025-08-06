@@ -1,6 +1,6 @@
 from flask import request, send_file, current_app
 from flask_restful import Resource, abort
-from models import db, ModelVersion, ModelRating
+from models import DiagnosisResult, db, ModelVersion, ModelRating
 from datetime import datetime
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import hashlib, os
@@ -57,79 +57,66 @@ class DownloadModelConfigResource(Resource):
 
 class RateModelResource(Resource):
     @jwt_required()
-    def post(self, model_id):
+    def post(self):
         user_identity = get_jwt_identity()
         userId = int(user_identity["userId"])
         
-        model = ModelVersion.query.get_or_404(model_id)
+        # Get data from request
         data = request.json
-
+        result_id = data.get('resultId')
+        
+        if not result_id:
+            return {"message": "resultId is required"}, 400
+        
+        # Find the diagnosis result
+        diagnosis_result = DiagnosisResult.query.get_or_404(result_id)
+        
+        # Check if this result belongs to the current user
+        if diagnosis_result.userId != userId:
+            return {"message": "Unauthorized to rate this diagnosis"}, 403
+            
+        # Check if already rated
+        if diagnosis_result.rated:
+            return {"message": "This diagnosis has already been rated"}, 400
+        
+        # Get the model version from the result
+        model_version = diagnosis_result.modelVersion
+        
+        # Find the model record by version
+        model = ModelVersion.query.filter_by(version=model_version).first()
+        
+        # If no matching model found, use the first available model as fallback
+        if not model:
+            model = ModelVersion.query.first()
+            
+            # If there are no models at all, return an error
+            if not model:
+                return {"message": "No model versions available in the system"}, 404
+        
+        # Create the new rating
         new_rating = ModelRating(
-            modelId=model_id,
+            modelId=model.modelId,
             userId=userId,
-            offlineId=data.get('offlineId'),
             rating=data.get('rating'),
             feedback=data.get('feedback'),
-            diagnosisResult=data.get('diagnosisResult'),
             diagnosisCorrect=data.get('diagnosisCorrect'),
-            cropType=data.get('cropType'),
-            deviceInfo=data.get('deviceInfo')
         )
         
         try:
+            # Add the rating
             db.session.add(new_rating)
+            
+            # Mark the diagnosis as rated
+            diagnosis_result.rated = True
+            
+            # Commit the transaction
             db.session.commit()
+            
+            return {"message": "Rating submitted successfully.", "data": new_rating.to_dict()}, 201
+            
         except Exception as e:
             db.session.rollback()
             return {"message": "An error occurred", "error": str(e)}, 500
-
-        return {"message": "Rating submitted successfully.", "data": new_rating.to_dict()}, 201
-
-
-class SyncOfflineRatingsResource(Resource):
-    @jwt_required()
-    def post(self):
-        
-        user_identity = get_jwt_identity()
-        userId = int(user_identity["userId"])
-        
-        data = request.json
-        successful_ids = []
-        new_ratings = []
-
-        for rating_data in data.get('ratings', []):
-            existing = ModelRating.query.filter_by(offlineId=rating_data.get('offlineId')).first()
-            model = ModelVersion.query.get_or_404(rating_data.get('modelId'))
-            if existing:
-                successful_ids.append(rating_data.get('offlineId'))
-                continue
-
-            try:
-                new_rating = ModelRating(
-                    modelId=rating_data.get('modelId'),
-                    userId=userId,
-                    offlineId=rating_data.get('offlineId'),
-                    rating=rating_data.get('rating'),
-                    feedback=rating_data.get('feedback'),
-                    diagnosisResult=rating_data.get('diagnosisResult'),
-                    diagnosisCorrect=rating_data.get('diagnosisCorrect'),
-                    cropType=rating_data.get('cropType'),
-                    deviceInfo=rating_data.get('deviceInfo'),
-                    createdAt=datetime.fromisoformat(rating_data.get('createdAt', datetime.utcnow().isoformat()))
-                )
-                db.session.add(new_rating)
-                new_ratings.append(new_rating)
-                successful_ids.append(rating_data.get('offlineId'))
-            except Exception as e:
-                current_app.logger.error(f"Error syncing rating: {str(e)}")
-
-        try:   
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            return {"message": "An error occurred", "error": str(e)}, 500
-        
-        return {"success": True, "syncedIds": successful_ids, "data": [new_rating.to_dict() for new_rating in new_ratings]}, 200
 
 
 class AdminModelResource(Resource):
