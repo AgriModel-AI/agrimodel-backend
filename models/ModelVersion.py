@@ -12,11 +12,6 @@ class ModelVersion(db.Model):
     fileHash = db.Column(db.String(64), nullable=False)  # For integrity verification
     filePath = db.Column(db.String(255), nullable=False)
     
-    # Add configuration file information
-    configPath = db.Column(db.String(255), nullable=False)
-    configHash = db.Column(db.String(64), nullable=False)
-    configSize = db.Column(db.Integer, nullable=False)
-    
     accuracy = db.Column(db.Float, nullable=True)
     releaseDate = db.Column(db.DateTime, default=datetime.utcnow)
     isActive = db.Column(db.Boolean, default=True)
@@ -31,8 +26,6 @@ class ModelVersion(db.Model):
             "version": self.version,
             "fileSize": self.fileSize,
             "fileHash": self.fileHash,
-            "configSize": self.configSize,
-            "configHash": self.configHash,
             "accuracy": self.accuracy,
             "releaseDate": self.releaseDate.isoformat(),
             "isActive": self.isActive

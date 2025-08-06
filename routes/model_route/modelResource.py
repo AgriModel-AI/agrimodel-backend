@@ -36,25 +36,6 @@ class DownloadModelResource(Resource):
             download_name=f"plant_disease_model_v{model.version}.tflite"
         )
 
-class DownloadModelConfigResource(Resource):
-    def get(self, model_id):
-        """Download the configuration (classes.json) file for a specific model version"""
-        model = ModelVersion.query.get(model_id)
-        if not model:
-            abort(404, message="Model not found.")
-
-        config_path = os.path.join(current_app.config['MODEL_STORAGE'], model.configPath)
-
-        if not os.path.exists(config_path):
-            abort(404, message="Configuration file not found.")
-
-        return send_file(
-            config_path,
-            as_attachment=True,
-            download_name=f"plant_disease_classes_v{model.version}.json"
-        )
-
-
 class RateModelResource(Resource):
     @jwt_required()
     def post(self):
@@ -146,12 +127,9 @@ class AdminModelResource(Resource):
         
         data = request.form
         model_file = request.files.get('model_file')
-        config_file = request.files.get('config_file')
 
         if not model_file:
             abort(400, message="No model file provided.")
-        if not config_file:
-            abort(400, message="No configuration file provided.")
 
         version = data.get('version')
         if not version:
@@ -159,25 +137,19 @@ class AdminModelResource(Resource):
 
         # Generate file names and paths
         model_filename = f"plant_disease_model_v{version}.tflite"
-        config_filename = f"plant_disease_classes_v{version}.json"
         model_path = os.path.join(current_app.config['MODEL_STORAGE'], model_filename)
-        config_path = os.path.join(current_app.config['MODEL_STORAGE'], config_filename)
 
         # Save files
         model_file.save(model_path)
-        config_file.save(config_path)
 
         # Calculate file sizes and hashes
         try:
             model_size = os.path.getsize(model_path) // 1024
             model_hash = hashlib.sha256(open(model_path, 'rb').read()).hexdigest()
 
-            config_size = os.path.getsize(config_path) // 1024
-            config_hash = hashlib.sha256(open(config_path, 'rb').read()).hexdigest()
         except Exception as e:
             # Clean up on error
             if os.path.exists(model_path): os.remove(model_path)
-            if os.path.exists(config_path): os.remove(config_path)
             abort(500, message=f"Failed to process files: {str(e)}")
 
 
@@ -187,9 +159,6 @@ class AdminModelResource(Resource):
             fileSize=model_size,
             fileHash=model_hash,
             filePath=model_filename,
-            configSize=config_size,
-            configHash=config_hash,
-            configPath=config_filename,
             accuracy=data.get('accuracy'),
             isActive=data.get('isActive', True)
         )

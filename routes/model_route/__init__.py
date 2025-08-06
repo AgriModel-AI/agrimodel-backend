@@ -5,10 +5,9 @@ modelsBlueprint = Blueprint("models", __name__, url_prefix="/api/v1/models")
 modelsApi = Api(modelsBlueprint)
 
 
-from .modelResource import LatestModelResource, DownloadModelResource, DownloadModelConfigResource, RateModelResource, AdminModelResource
+from .modelResource import LatestModelResource, DownloadModelResource, RateModelResource, AdminModelResource
 
 modelsApi.add_resource(LatestModelResource, '/latest')
 modelsApi.add_resource(DownloadModelResource, '/<string:model_id>/download')
-modelsApi.add_resource(DownloadModelConfigResource, '/<string:model_id>/config')
 modelsApi.add_resource(RateModelResource, '/ratings')
 modelsApi.add_resource(AdminModelResource, '/admin')

@@ -111,6 +111,11 @@ def create_app(config_class=DevelopmentConfig, allow=True):
     jwt.init_app(app)
     mail.init_app(app)
     
+    
+     # Initialize scheduler only in non-testing environments
+    if allow:
+        socketio.init_app(app, cors_allowed_origins="*")
+    
     # Ensure the uploads directories exist
     os.makedirs('static/uploads/posts', exist_ok=True)
     os.makedirs('static/uploads/communities', exist_ok=True)

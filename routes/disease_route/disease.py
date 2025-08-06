@@ -355,17 +355,17 @@ class DiseaseResource(Resource):
                 if file and allowed_file(file.filename):
                     try:
                         # Save the file to local storage
-                        image_url = save_image_locally(file)
-                        images.append(image_url)
+                        # image_url = save_image_locally(file)
+                        # images.append(image_url)
                         
                         # Cloudinary upload code (commented out but preserved)
-                        """
+                        
                         # Upload the file to Cloudinary
                         upload_result = cloudinary.uploader.upload(file)
                         # Get the URL of the uploaded image
                         image_url = upload_result.get('url')
                         images.append(image_url)
-                        """
+                        
                     except Exception as e:
                         logger.error(f"Image upload failed: {str(e)}")
                         return {"message": f"Image upload failed: {str(e)}"}, 500
@@ -441,17 +441,17 @@ class DiseaseResource(Resource):
                 if file and allowed_file(file.filename):
                     try:
                         # Save the file to local storage
-                        image_url = save_image_locally(file)
-                        images.append(image_url)
+                        # image_url = save_image_locally(file)
+                        # images.append(image_url)
                         
                         # Cloudinary upload code (commented out but preserved)
-                        """
+                        
                         # Upload the file to Cloudinary
                         upload_result = cloudinary.uploader.upload(file)
                         # Get the URL of the uploaded image
                         image_url = upload_result.get('url')
                         images.append(image_url)
-                        """
+                        
                     except Exception as e:
                         logger.error(f"Image upload failed: {str(e)}")
                         return {"message": f"Image upload failed: {str(e)}"}, 500
@@ -513,17 +513,17 @@ class DiseaseResource(Resource):
                 if file and allowed_file(file.filename):
                     try:
                         # Save the file to local storage
-                        image_url = save_image_locally(file)
-                        new_images.append(image_url)
+                        # image_url = save_image_locally(file)
+                        # new_images.append(image_url)
                         
                         # Cloudinary upload code (commented out but preserved)
-                        """
+                        
                         # Upload the file to Cloudinary
                         upload_result = cloudinary.uploader.upload(file)
                         # Get the URL of the uploaded image
                         image_url = upload_result.get('url')
                         new_images.append(image_url)
-                        """
+                        
                     except Exception as e:
                         logger.error(f"Image upload failed: {str(e)}")
                         return {"message": f"Image upload failed: {str(e)}"}, 500
@@ -549,13 +549,13 @@ class DiseaseResource(Resource):
                 delete_image_locally(url)
                 
                 # Cloudinary deletion code (commented out but preserved)
-                """
+                
                 try:
                     public_id = url.strip().split("/")[-1].split(".")[0]
                     cloudinary.uploader.destroy(public_id)
                 except Exception as e:
                     logger.error(f"Failed to delete image from Cloudinary: {str(e)}")
-                """
+                
         
         # Delete the disease record from the database
         db.session.delete(disease)

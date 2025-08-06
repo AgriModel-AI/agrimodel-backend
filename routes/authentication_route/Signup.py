@@ -1,5 +1,7 @@
 import re
 import random
+import smtplib
+from socket import timeout as socket_timeout
 from flask import request
 from flask_restful import Resource, abort
 from werkzeug.security import generate_password_hash
@@ -86,19 +88,28 @@ class SignupResource(Resource):
             db.session.add(code_entry)
             db.session.commit()
 
-            # Send verification email
-            self.send_verification_email(user.email, verification_code)
+            try:
+                # Send verification email
+                self.send_verification_email(user.email, verification_code)
 
-            return {"message": "User created successfully. A verification code has been sent to your email."}, 201
+                return {"message": "User created successfully. A verification code has been sent to your email."}, 201
+            except Exception as e:
+                db.session.rollback()
+                print(f"Signup error: {e}")
+                abort(500, message="Internal server error. Please try again later.")
 
         except Exception as e:
             abort(500, message="Internal server error. Please try again later.")
 
     def send_verification_email(self, email, code):
         """Send email with verification code."""
-        msg = Message(
-            subject="Your Verification Code",
-            recipients=[email],
-            body=f"Your verification code is {code}. It will expire in 10 minutes."
-        )
-        mail.send(msg)
+        try:
+            msg = Message(
+                subject="Your Verification Code",
+                recipients=[email],
+                body=f"Your verification code is {code}. It will expire in 10 minutes."
+            )
+            mail.send(msg)
+        except (smtplib.SMTPException, socket_timeout, ConnectionError) as e:
+            print(f"Failed to send email to {email}: {e}")
+            raise e

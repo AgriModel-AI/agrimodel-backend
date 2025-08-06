@@ -11,8 +11,6 @@ from .ValidateCode import ValidateCodeResource
 from .ValidateCode import ResendCodeResource
 from .Login import LoginResource, LoginClientResource, RefreshTokenResource
 from .passwordResetRequest import PasswordResetResource, VerifyPasswordResetResource
-from .GoogleAuth import GoogleLoginResource, CallbackResource
-from .GoogleAuthClient import GoogleLoginResourceClient, CallbackResourceClient
 
 # Add login and signup resources
 authApi.add_resource(SignupResource, "/signup")
@@ -21,9 +19,5 @@ authApi.add_resource(ResendCodeResource, "/resend-code")
 authApi.add_resource(LoginResource, "/login")
 authApi.add_resource(RefreshTokenResource, "/refresh-token")
 authApi.add_resource(LoginClientResource, "/client/login")
-authApi.add_resource(GoogleLoginResource, "/google-auth")
-authApi.add_resource(CallbackResource, "/callback")
-authApi.add_resource(GoogleLoginResourceClient, "/google-auth-client")
-authApi.add_resource(CallbackResourceClient, "/callback-client")
 authApi.add_resource(PasswordResetResource, '/password-reset')
 authApi.add_resource(VerifyPasswordResetResource, '/password-reset/verify')
