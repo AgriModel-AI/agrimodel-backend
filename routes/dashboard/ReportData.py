@@ -223,13 +223,24 @@ class ReportDataResource(Resource):
             desc(ModelVersion.releaseDate)
         ).all()
         
-        # Performance by disease type
+        # Performance by disease type - FIXED QUERY
         disease_performance = db.session.query(
             Disease.name.label('disease_name'),
             func.count(DiagnosisResult.resultId).label('total_diagnoses'),
-            func.sum(case((DiagnosisResult.detected == True, 1), else_=0)).label('positive_diagnoses')
+            func.sum(case((DiagnosisResult.detected == True, 1), else_=0)).label('positive_diagnoses'),
+            func.avg(ModelRating.rating).label('avg_rating')  # Added missing avg rating
         ).join(
             DiagnosisResult, Disease.diseaseId == DiagnosisResult.diseaseId
+        ).outerjoin(
+            ModelRating, 
+            and_(
+                ModelRating.modelId.in_(
+                    db.session.query(ModelVersion.modelId).filter(
+                        ModelVersion.isActive == True
+                    )
+                ),
+                ModelRating.createdAt.between(start_date, end_date)
+            )
         ).filter(
             DiagnosisResult.date.between(start_date, end_date)
         ).group_by(
@@ -253,25 +264,30 @@ class ReportDataResource(Resource):
                 "releaseDate": item[4].strftime('%Y-%m-%d') if item[4] else None
             })
         
+        # FIXED: Disease performance data formatting
         disease_performance_data = []
         for item in disease_performance:
-            accuracy = (item[2] / item[3] * 100) if item[3] > 0 else 0
+            detection_accuracy = (item[2] / item[1] * 100) if item[1] > 0 else 0  # positive/total diagnoses
             disease_performance_data.append({
                 "disease": item[0],
-                "avgRating": round(item[1] or 0, 2),
-                "correctDiagnoses": item[2],
-                "totalRatings": item[3],
-                "accuracy": round(accuracy, 2)
+                "avgRating": round(item[3] or 0, 2),  # Now correctly accessing avg_rating (item[3])
+                "totalDiagnoses": item[1],           # total_diagnoses
+                "positiveDiagnoses": item[2],        # positive_diagnoses  
+                "detectionAccuracy": round(detection_accuracy, 2)  # More meaningful than "accuracy"
             })
         
-        # Calculate summary metrics
+        # Calculate summary metrics - FIXED
         overall_accuracy = sum(item["accuracy"] for item in model_performance_data) / len(model_performance_data) if model_performance_data else 0
         best_model = max(model_performance_data, key=lambda x: x["accuracy"])["version"] if model_performance_data else "None"
         total_ratings = sum(item["totalRatings"] for item in model_performance_data)
         
-        # Find strongest and weakest disease performance
-        strongest_disease = max(disease_performance_data, key=lambda x: x["accuracy"])["disease"] if disease_performance_data else "None"
-        weakest_disease = min(disease_performance_data, key=lambda x: x["accuracy"])["disease"] if len(disease_performance_data) > 1 else "None"
+        # Find strongest and weakest disease performance - FIXED
+        if disease_performance_data:
+            strongest_disease = max(disease_performance_data, key=lambda x: x["detectionAccuracy"])["disease"]
+            weakest_disease = min(disease_performance_data, key=lambda x: x["detectionAccuracy"])["disease"] if len(disease_performance_data) > 1 else "None"
+        else:
+            strongest_disease = "None"
+            weakest_disease = "None"
         
         return jsonify({
             "title": "Quarterly AI Model Performance Assessment",
@@ -295,8 +311,8 @@ class ReportDataResource(Resource):
                     {"version": item["version"], "accuracy": item["accuracy"]} 
                     for item in model_performance_data
                 ],
-                "diseaseAccuracy": [
-                    {"disease": item["disease"], "accuracy": item["accuracy"]} 
+                "diseaseDetectionAccuracy": [
+                    {"disease": item["disease"], "accuracy": item["detectionAccuracy"]} 
                     for item in disease_performance_data
                 ]
             }

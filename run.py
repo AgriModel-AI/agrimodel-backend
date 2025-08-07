@@ -43,7 +43,7 @@ def create_app(config_class=DevelopmentConfig, allow=True):
         api_secret=os.getenv("CLOUDINARY_API_SECRET")
     )
         
-    CORS(app, resources={r"/*": {"origins": "*"}}, methods=["GET", "DELETE","POST", "PUT", "PATCH","OPTIONS"], allow_headers=["Content-Type", "Authorization"], supports_credentials=True)
+    # CORS(app, resources={r"/*": {"origins": "*"}}, methods=["GET", "DELETE","POST", "PUT", "PATCH","OPTIONS"], allow_headers=["Content-Type", "Authorization"], supports_credentials=True)
     app.config['CORS_HEADERS'] = 'Content-Type'
 
     # Initialize Redis for distributed locking if available
@@ -147,6 +147,12 @@ def create_app(config_class=DevelopmentConfig, allow=True):
     app.register_blueprint(predictBlueprint)
     app.register_blueprint(exploreBlueprint)
     app.register_blueprint(modelsBlueprint)
+    
+    CORS(app, 
+         resources={r"/*": {"origins": "*"}}, 
+         methods=["GET", "DELETE", "POST", "PUT", "PATCH", "OPTIONS"], 
+         allow_headers=["Content-Type", "Authorization"], 
+         supports_credentials=True)
 
     register_cli(app)
 
