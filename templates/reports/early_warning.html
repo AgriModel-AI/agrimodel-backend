@@ -1,0 +1,388 @@
+{% extends 'reports/base_report.html' %}
+{% set report_title = 'Predictive & Early Warning Systems' %}
+
+{% block additional_styles %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<style>
+    #outbreakMapContainer {
+        height: 400px;
+        width: 100%;
+        border-radius: 8px;
+    }
+    .alert-icon {
+        font-size: 2rem;
+        margin-right: 1rem;
+    }
+    .alert-area {
+        border-left: 5px solid #dc3545;
+        background-color: rgba(220, 53, 69, 0.1);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 0.25rem;
+    }
+    .outbreak-details {
+        display: flex;
+        align-items: center;
+    }
+    .prediction-card {
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    .prediction-card:hover {
+        transform: translateY(-5px);
+    }
+    .severity-high {
+        background-color: rgba(220, 53, 69, 0.1);
+        border-left: 5px solid #dc3545;
+    }
+    .severity-medium {
+        background-color: rgba(255, 193, 7, 0.1);
+        border-left: 5px solid #ffc107;
+    }
+    .severity-low {
+        background-color: rgba(46, 125, 50, 0.1);
+        border-left: 5px solid #2e7d32;
+    }
+</style>
+{% endblock %}
+
+{% block report_content %}
+    <div class="report-section">
+        <h2 class="text-primary mb-4">Recent Disease Outbreaks</h2>
+        <div id="outbreakMapContainer" class="mb-4"></div>
+        <div class="table-container">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Disease</th>
+                        <th>District</th>
+                        <th>Case Count</th>
+                        <th>Latest Date</th>
+                        <th>Severity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in data.recent_outbreaks %}
+                    <tr>
+                        <td>{{ item.disease_name }}</td>
+                        <td>{{ item.district_name }}</td>
+                        <td>{{ item.case_count }}</td>
+                        <td>{{ item.latest_date }}</td>
+                        <td>
+                            {% if item.case_count > 20 %}
+                            <span class="badge bg-danger">High</span>
+                            {% elif item.case_count > 10 %}
+                            <span class="badge bg-warning text-dark">Medium</span>
+                            {% else %}
+                            <span class="badge bg-success">Low</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="alert alert-info mb-4">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <strong>Note:</strong> {{ data.message }}
+    </div>
+    
+    <div class="report-section">
+        <h2 class="text-primary mb-4">Disease Forecast</h2>
+        <div class="row">
+            <!-- Simulated forecasts -->
+            <div class="col-md-4 mb-4">
+                <div class="card prediction-card severity-high">
+                    <div class="card-body">
+                        <h5 class="card-title">Coffee Leaf Rust</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Huye, Nyamagabe, Rusizi</h6>
+                        <p class="card-text">Forecast: <strong>High Risk</strong></p>
+                        <p class="card-text">Expected in: <strong>2-3 weeks</strong></p>
+                        <p class="card-text small">Based on current weather patterns, soil conditions, and historical disease data.</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <small class="text-muted">Confidence: 87%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card prediction-card severity-medium">
+                    <div class="card-body">
+                        <h5 class="card-title">Banana Bacterial Wilt</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Rubavu, Karongi</h6>
+                        <p class="card-text">Forecast: <strong>Medium Risk</strong></p>
+                        <p class="card-text">Expected in: <strong>4-6 weeks</strong></p>
+                        <p class="card-text small">Moderate risk based on increasing temperatures and recent rainfall patterns.</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <small class="text-muted">Confidence: 72%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card prediction-card severity-low">
+                    <div class="card-body">
+                        <h5 class="card-title">Cassava Mosaic Disease</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Bugesera, Nyanza</h6>
+                        <p class="card-text">Forecast: <strong>Low Risk</strong></p>
+                        <p class="card-text">Expected in: <strong>8-10 weeks</strong></p>
+                        <p class="card-text small">Low risk due to favorable weather conditions and reduced vector populations.</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <small class="text-muted">Confidence: 65%</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="report-section">
+        <h2 class="text-primary mb-4">Anomaly Detection</h2>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <canvas id="anomalyChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="alert-area mb-3">
+                    <div class="outbreak-details">
+                        <div class="alert-icon">⚠️</div>
+                        <div>
+                            <h5 class="mb-1">Unusual Coffee Leaf Rust Pattern</h5>
+                            <p class="mb-1">Nyamagabe district showing 157% increase over expected levels</p>
+                            <small class="text-muted">Detected on August 2, 2025</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert-area mb-3">
+                    <div class="outbreak-details">
+                        <div class="alert-icon">⚠️</div>
+                        <div>
+                            <h5 class="mb-1">Early Bean Anthracnose Emergence</h5>
+                            <p class="mb-1">Appearing 3 weeks earlier than seasonal norm in Muhanga</p>
+                            <small class="text-muted">Detected on August 5, 2025</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert-area">
+                    <div class="outbreak-details">
+                        <div class="alert-icon">⚠️</div>
+                        <div>
+                            <h5 class="mb-1">Unusual Disease Spread Pattern</h5>
+                            <p class="mb-1">Banana Bacterial Wilt spreading against prevailing wind direction</p>
+                            <small class="text-muted">Detected on August 7, 2025</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="report-section">
+        <h2 class="text-primary mb-4">Seasonal Disease Calendar</h2>
+        <div class="chart-container" style="height: 400px;">
+            <canvas id="seasonalCalendarChart"></canvas>
+        </div>
+        <div class="alert alert-success mt-4">
+            <strong>Recommendation:</strong> Based on the seasonal disease calendar, farmers in high-risk areas should implement preventive measures for Coffee Leaf Rust in August-September and for Banana Bacterial Wilt in October-November.
+        </div>
+    </div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Outbreak Map
+        const outbreakMap = L.map('outbreakMapContainer').setView([-1.9403, 29.8739], 8); // Rwanda coordinates
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(outbreakMap);
+        
+        // Get outbreak data
+        const outbreakData = {{ data.recent_outbreaks|tojson }};
+        
+        // Create random coordinates for districts (in production, use actual coordinates)
+        const rwandaCoords = [-1.9403, 29.8739];
+        const districtCoords = {};
+        
+        // Get unique districts
+        const districts = [...new Set(outbreakData.map(item => item.district_name))];
+        
+        // Generate random coordinates for districts
+        districts.forEach((district, index) => {
+            const angle = (index / districts.length) * Math.PI * 2;
+            const radius = 0.5 + Math.random() * 0.5;
+            const lat = rwandaCoords[0] + Math.cos(angle) * radius;
+            const lng = rwandaCoords[1] + Math.sin(angle) * radius;
+            
+            districtCoords[district] = [lat, lng];
+        });
+        
+        // Add markers for outbreaks
+        outbreakData.forEach(outbreak => {
+            const coords = districtCoords[outbreak.district_name];
+            if (!coords) return;
+            
+            // Determine marker size and color based on case count
+            const radius = 10 + (outbreak.case_count / 10) * 10;
+            let color = '#2e7d32'; // Green for low
+            
+            if (outbreak.case_count > 20) {
+                color = '#dc3545'; // Red for high
+            } else if (outbreak.case_count > 10) {
+                color = '#ffc107'; // Yellow for medium
+            }
+            
+            const marker = L.circleMarker(coords, {
+                radius: radius,
+                fillColor: color,
+                color: '#fff',
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(outbreakMap);
+            
+            marker.bindPopup(`
+                <strong>${outbreak.disease_name}</strong><br>
+                ${outbreak.district_name}<br>
+                Cases: ${outbreak.case_count}<br>
+                Latest: ${outbreak.latest_date}
+            `);
+        });
+        
+        // Anomaly Detection Chart (Simulated data)
+        const anomalyData = {
+            labels: ['Jun 15', 'Jun 22', 'Jun 29', 'Jul 6', 'Jul 13', 'Jul 20', 'Jul 27', 'Aug 3'],
+            datasets: [
+                {
+                    label: 'Expected Range',
+                    data: [null, null, null, null, null, null, null, null],
+                    backgroundColor: 'rgba(46, 125, 50, 0.2)',
+                    borderColor: 'rgba(46, 125, 50, 0.2)',
+                    fill: '+1',
+                },
+                {
+                    label: 'Expected Upper Bound',
+                    data: [12, 15, 18, 22, 25, 23, 20, 18],
+                    backgroundColor: 'rgba(46, 125, 50, 0)',
+                    borderColor: 'rgba(46, 125, 50, 0.5)',
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    fill: false,
+                },
+                {
+                    label: 'Expected Lower Bound',
+                    data: [5, 7, 9, 12, 14, 13, 11, 9],
+                    backgroundColor: 'rgba(46, 125, 50, 0.2)',
+                    borderColor: 'rgba(46, 125, 50, 0.5)',
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    fill: false,
+                },
+                {
+                    label: 'Actual Cases',
+                    data: [8, 11, 14, 17, 21, 26, 32, 46],
+                    backgroundColor: 'rgba(220, 53, 69, 0)',
+                    borderColor: '#dc3545',
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#dc3545',
+                }
+            ]
+        };
+        
+        new Chart(document.getElementById('anomalyChart'), {
+            type: 'line',
+            data: anomalyData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Coffee Leaf Rust Cases in Nyamagabe (Anomaly Detection)'
+                    },
+                    legend: {
+                        display: true
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Cases'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Seasonal Calendar Chart (Simulated data)
+        const seasonalCalendarData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [
+                {
+                    label: 'Coffee Leaf Rust',
+                    data: [25, 30, 35, 40, 45, 50, 60, 80, 85, 65, 45, 30],
+                    borderColor: '#dc3545',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Banana Bacterial Wilt',
+                    data: [40, 35, 30, 25, 30, 40, 50, 55, 65, 80, 75, 60],
+                    borderColor: '#ffc107',
+                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Bean Anthracnose',
+                    data: [55, 65, 70, 65, 55, 45, 40, 35, 30, 35, 45, 50],
+                    borderColor: '#2e7d32',
+                    backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        };
+        
+        new Chart(document.getElementById('seasonalCalendarChart'), {
+            type: 'line',
+            data: seasonalCalendarData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Seasonal Disease Prevalence (Risk Level)'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Risk Level'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,239 @@
+{% extends 'reports/base_report.html' %}
+{% set report_title = 'Community & Social Interactions' %}
+
+{% block report_content %}
+    <div class="report-section">
+        <h2 class="text-primary mb-4">Top Active Communities</h2>
+        <div class="chart-container">
+            <canvas id="topCommunitiesChart"></canvas>
+        </div>
+        <div class="table-container">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Community Name</th>
+                        <th>Post Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in data.top_communities %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.post_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="report-section">
+        <h2 class="text-primary mb-4">Posts Per Day Trend</h2>
+        <div class="chart-container">
+            <canvas id="postsPerDayChart"></canvas>
+        </div>
+        <div class="table-container">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Post Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in data.posts_per_day %}
+                    <tr>
+                        <td>{{ item.date }}</td>
+                        <td>{{ item.count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="report-section">
+                <h2 class="text-primary mb-4">Top Contributors</h2>
+                <div class="chart-container">
+                    <canvas id="topContributorsChart"></canvas>
+                </div>
+                <div class="table-container">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Post Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in data.top_contributors %}
+                            <tr>
+                                <td>{{ item.username }}</td>
+                                <td>{{ item.post_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="report-section">
+                <h2 class="text-primary mb-4">Post Engagement</h2>
+                <div class="chart-container">
+                    <canvas id="postEngagementChart"></canvas>
+                </div>
+                <div class="table-container">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Post</th>
+                                <th>Likes</th>
+                                <th>Comments</th>
+                                <th>Engagement Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in data.post_engagement %}
+                            <tr>
+                                <td>{{ item.content }}</td>
+                                <td>{{ item.likes }}</td>
+                                <td>{{ item.comments }}</td>
+                                <td>{{ item.engagement_rate }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Top Communities Chart
+        const communitiesData = {{ data.top_communities|tojson }};
+        const communityNames = communitiesData.map(item => item.name);
+        const communityCounts = communitiesData.map(item => item.post_count);
+        
+        new Chart(document.getElementById('topCommunitiesChart'), {
+            type: 'bar',
+            data: {
+                labels: communityNames,
+                datasets: [{
+                    label: 'Post Count',
+                    data: communityCounts,
+                    backgroundColor: '#2e7d32',
+                    borderColor: '#2e7d32',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+        
+        // Posts Per Day Chart
+        const postsPerDayData = {{ data.posts_per_day|tojson }};
+        const postsPerDayLabels = postsPerDayData.map(item => item.date);
+        const postsPerDayCounts = postsPerDayData.map(item => item.count);
+        
+        new Chart(document.getElementById('postsPerDayChart'), {
+            type: 'line',
+            data: {
+                labels: postsPerDayLabels,
+                datasets: [{
+                    label: 'Posts',
+                    data: postsPerDayCounts,
+                    backgroundColor: 'rgba(46, 125, 50, 0.2)',
+                    borderColor: '#2e7d32',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // Top Contributors Chart
+        const contributorsData = {{ data.top_contributors|tojson }};
+        const contributorNames = contributorsData.map(item => item.username);
+        const contributorCounts = contributorsData.map(item => item.post_count);
+        
+        new Chart(document.getElementById('topContributorsChart'), {
+            type: 'bar',
+            data: {
+                labels: contributorNames,
+                datasets: [{
+                    label: 'Posts',
+                    data: contributorCounts,
+                    backgroundColor: '#f57c00',
+                    borderColor: '#f57c00',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+        
+        // Post Engagement Chart
+        const engagementData = {{ data.post_engagement|tojson }};
+        const engagementLabels = engagementData.map(item => item.content.substring(0, 15) + '...');
+        const likesData = engagementData.map(item => item.likes);
+        const commentsData = engagementData.map(item => item.comments);
+        
+        new Chart(document.getElementById('postEngagementChart'), {
+            type: 'bar',
+            data: {
+                labels: engagementLabels,
+                datasets: [
+                    {
+                        label: 'Likes',
+                        data: likesData,
+                        backgroundColor: '#2e7d32',
+                        borderColor: '#2e7d32',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Comments',
+                        data: commentsData,
+                        backgroundColor: '#f57c00',
+                        borderColor: '#f57c00',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

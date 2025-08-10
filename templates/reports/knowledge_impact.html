@@ -1,0 +1,317 @@
+{% extends 'reports/base_report.html' %}
+{% set report_title = 'Knowledge & Educational Impact' %}
+
+{% block report_content %}
+    <div class="report-section">
+        <h2 class="text-primary mb-4">Community Discussion Topics</h2>
+        <div class="chart-container">
+            <canvas id="discussionTopicsChart"></canvas>
+        </div>
+        <div class="table-container mt-4">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Community Topic</th>
+                        <th>Post Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in data.discussion_topics %}
+                    <tr>
+                        <td>{{ item.community_name }}</td>
+                        <td>{{ item.post_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="alert alert-info mb-4">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <strong>Note:</strong> {{ data.message }}
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="report-section">
+                <h2 class="text-primary mb-4">Most Searched Topics</h2>
+                <!-- Simulated data for demonstration -->
+                <div class="chart-container">
+                    <canvas id="searchTopicsChart"></canvas>
+                </div>
+                <div class="table-container mt-4">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Search Topic</th>
+                                <th>Search Volume</th>
+                                <th>Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Simulated data -->
+                            <tr>
+                                <td>Coffee Leaf Rust Treatment</td>
+                                <td>876</td>
+                                <td><span class="text-success">↑ 15%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Banana Disease Identification</td>
+                                <td>743</td>
+                                <td><span class="text-success">↑ 23%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Organic Pest Control</td>
+                                <td>629</td>
+                                <td><span class="text-success">↑ 8%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Disease-Resistant Varieties</td>
+                                <td>582</td>
+                                <td><span class="text-danger">↓ 5%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Soil Health Management</td>
+                                <td>541</td>
+                                <td><span class="text-success">↑ 12%</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="report-section">
+                <h2 class="text-primary mb-4">Frequently Asked Questions</h2>
+                <!-- Simulated data for demonstration -->
+                <div class="chart-container">
+                    <canvas id="faqTopicsChart"></canvas>
+                </div>
+                <div class="table-container mt-4">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Question Category</th>
+                                <th>Frequency</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Simulated data -->
+                            <tr>
+                                <td>Disease Identification</td>
+                                <td>35%</td>
+                            </tr>
+                            <tr>
+                                <td>Treatment Methods</td>
+                                <td>27%</td>
+                            </tr>
+                            <tr>
+                                <td>App Usage Help</td>
+                                <td>18%</td>
+                            </tr>
+                            <tr>
+                                <td>Prevention Strategies</td>
+                                <td>12%</td>
+                            </tr>
+                            <tr>
+                                <td>Other</td>
+                                <td>8%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="report-section">
+        <h2 class="text-primary mb-4">Educational Impact Assessment</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Knowledge Growth Metrics</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="knowledgeGrowthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Top Educational Content</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <!-- Simulated data -->
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Disease Identification Guide
+                                <span class="badge bg-primary rounded-pill">4,782 views</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Preventive Farming Practices
+                                <span class="badge bg-primary rounded-pill">3,946 views</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Organic Treatment Methods
+                                <span class="badge bg-primary rounded-pill">3,218 views</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Climate-Smart Agriculture
+                                <span class="badge bg-primary rounded-pill">2,873 views</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Crop Rotation Planning
+                                <span class="badge bg-primary rounded-pill">2,451 views</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="alert alert-success">
+            <strong>Key Insight:</strong> AgriModel's educational resources have increased farmers' knowledge of disease identification by an estimated 68% and improved adoption of preventive practices by 42% across active user communities.
+        </div>
+    </div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Community Discussion Topics Chart
+        const discussionTopicsData = {{ data.discussion_topics|tojson }};
+        const communityNames = discussionTopicsData.map(item => item.community_name);
+        const postCounts = discussionTopicsData.map(item => item.post_count);
+        
+        new Chart(document.getElementById('discussionTopicsChart'), {
+            type: 'bar',
+            data: {
+                labels: communityNames,
+                datasets: [{
+                    label: 'Post Count',
+                    data: postCounts,
+                    backgroundColor: '#2e7d32',
+                    borderColor: '#2e7d32',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+        
+        // Most Searched Topics Chart (Simulated data)
+        const searchTopicsData = [
+            { topic: 'Coffee Leaf Rust Treatment', volume: 876, trend: 15 },
+            { topic: 'Banana Disease Identification', volume: 743, trend: 23 },
+            { topic: 'Organic Pest Control', volume: 629, trend: 8 },
+            { topic: 'Disease-Resistant Varieties', volume: 582, trend: -5 },
+            { topic: 'Soil Health Management', volume: 541, trend: 12 }
+        ];
+        
+        new Chart(document.getElementById('searchTopicsChart'), {
+            type: 'bar',
+            data: {
+                labels: searchTopicsData.map(item => item.topic),
+                datasets: [{
+                    label: 'Search Volume',
+                    data: searchTopicsData.map(item => item.volume),
+                    backgroundColor: searchTopicsData.map(item => item.trend >= 0 ? '#2e7d32' : '#dc3545'),
+                    borderColor: searchTopicsData.map(item => item.trend >= 0 ? '#2e7d32' : '#dc3545'),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+        
+        // FAQ Topics Chart (Simulated data)
+        const faqTopicsData = [
+            { category: 'Disease Identification', frequency: 35 },
+            { category: 'Treatment Methods', frequency: 27 },
+            { category: 'App Usage Help', frequency: 18 },
+            { category: 'Prevention Strategies', frequency: 12 },
+            { category: 'Other', frequency: 8 }
+        ];
+        
+        new Chart(document.getElementById('faqTopicsChart'), {
+            type: 'pie',
+            data: {
+                labels: faqTopicsData.map(item => item.category),
+                datasets: [{
+                    data: faqTopicsData.map(item => item.frequency),
+                    backgroundColor: [
+                        '#2e7d32', '#a5d6a7', '#f57c00', '#ffcc80', '#78909c'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+        
+        // Knowledge Growth Chart (Simulated data)
+        const knowledgeGrowthData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [
+                {
+                    label: 'Disease Identification Skills',
+                    data: [35, 42, 49, 58, 65, 68],
+                    borderColor: '#2e7d32',
+                    backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                    fill: true
+                },
+                {
+                    label: 'Prevention Knowledge',
+                    data: [28, 32, 36, 40, 42, 42],
+                    borderColor: '#f57c00',
+                    backgroundColor: 'rgba(245, 124, 0, 0.1)',
+                    fill: true
+                },
+                {
+                    label: 'Treatment Efficacy',
+                    data: [22, 28, 35, 40, 45, 51],
+                    borderColor: '#0277bd',
+                    backgroundColor: 'rgba(2, 119, 189, 0.1)',
+                    fill: true
+                }
+            ]
+        };
+        
+        new Chart(document.getElementById('knowledgeGrowthChart'), {
+            type: 'line',
+            data: knowledgeGrowthData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Knowledge Score (%)'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

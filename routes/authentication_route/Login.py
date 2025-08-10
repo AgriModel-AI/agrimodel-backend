@@ -26,14 +26,7 @@ class LoginResource(Resource):
         
         if not user:
             abort(400, message="Invalid credentials: user not found.")
-        
-        # Check if the user registered with Google auth
-        if user.authProvider == "google":
-            abort(400, message="This email is linked with Google. Please log in via Google authentication.")
-        
-        if not user:
-            abort(400, message="Invalid credentials: user not found or not registered locally.")
-        
+
         # Check password validity
         if not check_password_hash(user.password, password):
             abort(400, message="Invalid credentials: password is incorrect.")
@@ -65,7 +58,8 @@ class LoginResource(Resource):
         return {
             "message": "Login successful.",
             "access_token": access_token,
-            "refresh_token": refresh_token
+            "refresh_token": refresh_token,
+            "role": user.role
         }, 200
         
 
@@ -86,14 +80,7 @@ class LoginClientResource(Resource):
         
         if not user:
             abort(400, message="Invalid credentials: user not found.")
-        
-        # Check if the user registered with Google auth
-        if user.authProvider == "google":
-            abort(400, message="This email is linked with Google. Please log in via Google authentication.")
-        
-        if not user:
-            abort(400, message="Invalid credentials: user not found or not registered locally.")
-        
+                
         # Check password validity
         if not check_password_hash(user.password, password):
             abort(400, message="Invalid credentials: password is incorrect.")

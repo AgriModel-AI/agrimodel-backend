@@ -12,15 +12,10 @@ from routes import mail
 class CreateAdminUser(Resource):
     @jwt_required()
     def post(self):
-        """Admin route to create an admin user."""
-        # Check if current user is an admin (Uncomment if needed)
-        # current_user_id = get_jwt_identity()
-        # current_user = User.query.get(current_user_id)
-        # if not current_user or current_user.role != 'admin':
-        #     return {"message": "Unauthorized. Only admin users can create new admin accounts."}, 403
-
+        """Admin route to create an admin and rab user."""
+        
         data = request.json
-        required_fields = ["username", "email", "phone_number", "names", "gender", "national_id", "district", "address", "dob"]
+        required_fields = ["username", "email", "phone_number", "names", "gender", "national_id", "district", "address", "dob", "role"]
 
         # Validate required fields
         for field in required_fields:
@@ -36,6 +31,11 @@ class CreateAdminUser(Resource):
         district_id = data.get("district")
         address = data.get("address")
         dob = data.get("dob")
+        role = data.get("role")
+
+        # Validate role
+        if role not in ['admin', 'rab']:
+            abort(400, message="Invalid role. Role must be either 'admin' or 'rab'.")
 
         # Validate email format
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
@@ -76,13 +76,13 @@ class CreateAdminUser(Resource):
         hashed_password = generate_password_hash(generated_password)
 
         try:
-            # Create a new User instance with the role of 'admin'
+            # Create a new User instance with the specified role
             new_admin_user = User(
                 username=username,
                 password=hashed_password,
                 email=email,
                 phone_number=phone_number,
-                role='admin',
+                role=role,  # Use the role from request data
                 isVerified=True,
                 isBlocked=False
             )
@@ -109,7 +109,7 @@ class CreateAdminUser(Resource):
                 body=f"Hello {username},\n\nYour account has been created successfully. Your login password is: {generated_password}\n\nPlease change your password after logging in for the first time.\n\nBest Regards,\nAdmin Team"
             )
 
-            return {"message": "Admin user created successfully and password has been sent to their email."}, 201
+            return {"message": f"User with role '{role}' created successfully and password has been sent to their email."}, 201
 
         except Exception as e:
             db.session.rollback()

@@ -27,12 +27,10 @@ logging.basicConfig(
 def create_app(config_class=DevelopmentConfig, allow=True):
     app = Flask(__name__)
     app.config.from_object(config_class)
-    app.config["SECRET_KEY"] = "CodeSpecialist.com"
+    # app.config["SECRET_KEY"] = "CodeSpecialist.com"
     
     app.config['MODEL_STORAGE'] = os.environ.get('MODEL_STORAGE', './models_storage')
     os.makedirs(app.config['MODEL_STORAGE'], exist_ok=True)
-
-    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
     
     migrate = Migrate()
     jwt = JWTManager()
