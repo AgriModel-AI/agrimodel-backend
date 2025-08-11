@@ -156,7 +156,7 @@
                 "image": {
                 "type": "string",
                 "format": "binary",
-                "description": "Community image (png, jpg, jpeg, gif)"
+                "description": "Community image (png, jpg, jpeg, gif, webp)"
                 }
             }
             }

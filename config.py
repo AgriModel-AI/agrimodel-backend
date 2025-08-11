@@ -24,7 +24,7 @@ class Config:
 
     # Image upload configurations
     MAX_CONTENT_LENGTH = 100 * 1024 * 1024  # 100 MB max upload size
-    ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
     
     # Static file serving configuration
     STATIC_FOLDER = 'static'

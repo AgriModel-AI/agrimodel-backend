@@ -13,7 +13,7 @@ import os
 load_dotenv()
 
  
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 user_profile = os.getenv("USER_PROFILE")
 
@@ -154,7 +154,7 @@ class UserDetailsResource(Resource):
                 except Exception as e:
                     return {"message": f"Image upload failed: {str(e)}"}, 404
             else:
-                abort(400, description="Invalid profile picture format. Allowed: png, jpg, jpeg, gif.")
+                abort(400, description="Invalid profile picture format. Allowed: png, jpg, jpeg, gif, webp.")
 
         try:
             if not user_details:

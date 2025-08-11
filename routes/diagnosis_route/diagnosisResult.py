@@ -6,7 +6,7 @@ from models import db, DiagnosisResult, Disease, District, User
 import cloudinary.uploader
 
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 # Utility function to check if a file is an allowed image type
 def allowed_file(filename):
@@ -115,7 +115,7 @@ class DiagnosisResultResource(Resource):
 
         # Validate image format
         if not allowed_file(image.filename):
-            abort(400, message="Invalid image format. Allowed: png, jpg, jpeg, gif.")
+            abort(400, message="Invalid image format. Allowed: png, jpg, jpeg, gif, webp.")
 
         try:
             # Upload the file to Cloudinary

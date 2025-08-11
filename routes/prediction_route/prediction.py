@@ -52,7 +52,7 @@ transform = transforms.Compose([
 
 TEMP_DIR = 'temp'
 UPLOADS_DIR = 'static/uploads/images'  # Changed to static folder for serving via Flask
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 # Create necessary directories
 for directory in [TEMP_DIR, UPLOADS_DIR]:
@@ -120,7 +120,7 @@ class PredictionResource(Resource):
                 return {"message": "Empty image file provided"}, 400
                 
             if not allowed_file(image.filename):
-                return {"message": "File format not supported. Please upload png, jpg, jpeg, or gif."}, 400
+                return {"message": "File format not supported. Please upload png, jpg, jpeg, or gif, webp."}, 400
 
             # Save file temporarily
             filename = image.filename

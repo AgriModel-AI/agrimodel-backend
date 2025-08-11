@@ -4,7 +4,7 @@ from models import db, Crop
 import cloudinary.uploader
 
 # Allowed extensions for images
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 # Utility function to check if a file is an allowed image type
 def allowed_file(filename):
@@ -64,7 +64,7 @@ class CropResource(Resource):
                     
                     images.append(image_url)
                 else:
-                    return {"message": "Invalid file format. Allowed types: png, jpg, jpeg, gif."}, 400
+                    return {"message": "Invalid file format. Allowed types: png, jpg, jpeg, gif, webp."}, 400
 
         # Store image paths as comma-separated string
         image_paths = ",".join(images)
