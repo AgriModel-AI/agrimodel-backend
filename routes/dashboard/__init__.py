@@ -11,7 +11,7 @@ from .DashboardStats import DashboardStatsResource
 from .Analysis import DiseaseSummaryResource, DiseaseTrendResource, ProvinceDignosisSummaryResource, RecentActivityResource
 from .Report import ReportsResource 
 from .ReportData import ReportDataResource
-from .ReportNew import ReportNew
+from .ReportNew import ReportNew, ReportPdf
 
 
 # Add login and signup resources
@@ -21,6 +21,7 @@ dashboardApi.add_resource(DiseaseTrendResource, '/analytics/disease-trend')
 dashboardApi.add_resource(DiseaseSummaryResource, '/analytics/disease-summary')
 dashboardApi.add_resource(ReportsResource, '/reports/<string:report_type>')
 dashboardApi.add_resource(ReportNew, '/reports-new','/reports-new/<string:report_type>')
+dashboardApi.add_resource(ReportPdf, '/reports-pdf/<string:report_type>')
 dashboardApi.add_resource(RecentActivityResource, '/activity/recent')
 dashboardApi.add_resource(ProvinceDignosisSummaryResource, '/analytics/province-summary')
 dashboardApi.add_resource(ReportDataResource, '/report-data', '/report-data/<string:report_type>')

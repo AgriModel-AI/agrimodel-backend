@@ -1,0 +1,740 @@
+<!-- templates/reports/pdf/default_report.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ report_title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .header p {
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        .section h2 {
+            color: #3498db;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .chart-img {
+            width: 100%;
+            max-width: 800px;
+            margin: 15px auto;
+            display: block;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #7f8c8d;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 10px;
+        }
+        .summary-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            page-break-inside: avoid;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ report_title }}</h1>
+        <p>Period: {{ start_date }} to {{ end_date }}</p>
+        <p>Generated on: {{ current_date }}</p>
+    </div>
+
+    {% if report_title == 'User Engagement & Growth Report' %}
+        <div class="section">
+            <h2>User Growth Trend</h2>
+            {% if data.new_users_trend %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Month</th>
+                            <th>New Users</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.new_users_trend %}
+                        <tr>
+                            <td>{{ item.year }}</td>
+                            <td>{{ item.month }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.new_users_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.new_users_chart }}" alt="New Users Trend Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No new user data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Active Users</h2>
+            {% if data.active_users %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Active Users</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.active_users %}
+                        <tr>
+                            <td>{{ item.date }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.active_users_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.active_users_chart }}" alt="Active Users Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No active user data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>User Roles Distribution</h2>
+            {% if data.user_roles %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Role</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.user_roles %}
+                        <tr>
+                            <td>{{ item.role }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.user_roles_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.user_roles_chart }}" alt="User Roles Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No user role data available.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>User Verification Status</h2>
+            {% if data.verification_status %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.verification_status %}
+                        <tr>
+                            <td>{{ item.status }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.verification_status_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.verification_status_chart }}" alt="Verification Status Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No verification status data available.</p>
+            {% endif %}
+        </div>
+
+    {% elif report_title == 'Community & Social Interactions Report' %}
+        <div class="section">
+            <h2>Top Active Communities</h2>
+            {% if data.top_communities %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Community Name</th>
+                            <th>Post Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.top_communities %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.post_count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.top_communities_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.top_communities_chart }}" alt="Top Communities Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No community data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Posts Per Day</h2>
+            {% if data.posts_per_day %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Post Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.posts_per_day %}
+                        <tr>
+                            <td>{{ item.date }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.posts_per_day_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.posts_per_day_chart }}" alt="Posts Per Day Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No post frequency data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Post Engagement</h2>
+            {% if data.post_engagement %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Content</th>
+                            <th>Likes</th>
+                            <th>Comments</th>
+                            <th>Engagement Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.post_engagement %}
+                        <tr>
+                            <td>{{ item.content }}</td>
+                            <td>{{ item.likes }}</td>
+                            <td>{{ item.comments }}</td>
+                            <td>{{ item.engagement_rate }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.post_engagement_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.post_engagement_chart }}" alt="Post Engagement Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No post engagement data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Top Contributors</h2>
+            {% if data.top_contributors %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Post Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.top_contributors %}
+                        <tr>
+                            <td>{{ item.username }}</td>
+                            <td>{{ item.post_count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.top_contributors_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.top_contributors_chart }}" alt="Top Contributors Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No contributor data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+    {% elif report_title == 'Platform Health & Support Report' %}
+        <div class="section">
+            <h2>Support Requests by Type</h2>
+            {% if data.support_by_type %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Support Type</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.support_by_type %}
+                        <tr>
+                            <td>{{ item.type }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.support_type_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.support_type_chart }}" alt="Support by Type Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No support request type data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Support Requests by Status</h2>
+            {% if data.support_by_status %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.support_by_status %}
+                        <tr>
+                            <td>{{ item.status }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.support_status_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.support_status_chart }}" alt="Support by Status Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No support request status data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Average Resolution Time</h2>
+            <p>Average time to resolve support requests: <strong>{{ "%.2f"|format(data.avg_resolution_time_hours) }} hours</strong></p>
+        </div>
+
+        <div class="section">
+            <h2>Model Performance Ratings</h2>
+            {% if data.model_ratings %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model Version</th>
+                            <th>Avg Rating</th>
+                            <th>Total Ratings</th>
+                            <th>Correct Diagnoses</th>
+                            <th>Incorrect Diagnoses</th>
+                            <th>Accuracy %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.model_ratings %}
+                        <tr>
+                            <td>{{ item.version }}</td>
+                            <td>{{ "%.1f"|format(item.avg_rating) }}</td>
+                            <td>{{ item.rating_count }}</td>
+                            <td>{{ item.correct_count }}</td>
+                            <td>{{ item.incorrect_count }}</td>
+                            <td>{{ "%.1f"|format(item.accuracy_pct) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.model_ratings_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.model_ratings_chart }}" alt="Model Ratings Chart">
+                </div>
+                {% endif %}
+                {% if charts.model_accuracy_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.model_accuracy_chart }}" alt="Model Accuracy Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No model rating data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+    {% elif report_title == 'Plant Disease Analytics Report' %}
+        <div class="section">
+            <h2>Most Common Diseases</h2>
+            {% if data.common_diseases %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Disease</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.common_diseases %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.common_diseases_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.common_diseases_chart }}" alt="Common Diseases Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No disease data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Disease Trends Over Time</h2>
+            {% if data.disease_trends %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Disease</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.disease_trends %}
+                        <tr>
+                            <td>{{ item.date }}</td>
+                            <td>{{ item.disease }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.disease_trends_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.disease_trends_chart }}" alt="Disease Trends Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No disease trend data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Detection Ratio</h2>
+            {% if data.detection_ratio %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.detection_ratio %}
+                        <tr>
+                            <td>{{ item.status }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.detection_ratio_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.detection_ratio_chart }}" alt="Detection Ratio Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No detection ratio data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Model Version Performance</h2>
+            {% if data.model_performance %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Version</th>
+                            <th>Total Diagnoses</th>
+                            <th>Rated Count</th>
+                            <th>Correct Count</th>
+                            <th>Accuracy %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.model_performance %}
+                        <tr>
+                            <td>{{ item.version }}</td>
+                            <td>{{ item.total_diagnoses }}</td>
+                            <td>{{ item.rated_count }}</td>
+                            <td>{{ item.correct_count }}</td>
+                            <td>{{ "%.1f"|format(item.accuracy_pct) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.model_performance_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.model_performance_chart }}" alt="Model Performance Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No model performance data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+    {% elif report_title == 'Crop Monitoring & Vulnerability Report' %}
+        <div class="section">
+            <h2>Diseases by Crop Type</h2>
+            {% if data.crop_diseases %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Crop</th>
+                            <th>Disease</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.crop_diseases %}
+                        <tr>
+                            <td>{{ item.crop_name }}</td>
+                            <td>{{ item.disease_name }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.crop_diseases_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.crop_diseases_chart }}" alt="Crop Diseases Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No crop disease data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Seasonal Disease Patterns</h2>
+            {% if data.seasonal_patterns %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Crop</th>
+                            <th>Disease</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.seasonal_patterns %}
+                        <tr>
+                            <td>{{ item.month }}</td>
+                            <td>{{ item.crop_name }}</td>
+                            <td>{{ item.disease_name }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.seasonal_patterns_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.seasonal_patterns_chart }}" alt="Seasonal Patterns Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No seasonal pattern data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+    {% elif report_title == 'Geographical Insights Report' %}
+        <div class="section">
+            <h2>Disease Distribution by District</h2>
+            {% if data.district_distribution %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>District</th>
+                            <th>Province</th>
+                            <th>Disease</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.district_distribution %}
+                        <tr>
+                            <td>{{ item.district_name }}</td>
+                            <td>{{ item.province_name }}</td>
+                            <td>{{ item.disease_name }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.district_distribution_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.district_distribution_chart }}" alt="District Distribution Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No district distribution data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Districts with Highest Diagnosis Activity</h2>
+            {% if data.active_districts %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>District</th>
+                            <th>Province</th>
+                            <th>Diagnosis Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.active_districts %}
+                        <tr>
+                            <td>{{ item.district_name }}</td>
+                            <td>{{ item.province_name }}</td>
+                            <td>{{ item.diagnosis_count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if charts.active_districts_chart %}
+                <div class="chart-container">
+                    <img class="chart-img" src="{{ charts.active_districts_chart }}" alt="Active Districts Chart">
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No active district data available for the selected period.</p>
+            {% endif %}
+        </div>
+
+    {% else %}
+        <!-- Generic display for other report types -->
+        {% for section_name, section_data in data.items() %}
+            <div class="section">
+                <h2>{{ section_name|replace('_', ' ')|title }}</h2>
+                {% if section_data is mapping %}
+                    <table>
+                        <thead>
+                            <tr>
+                                {% for key in section_data.keys() %}
+                                <th>{{ key|replace('_', ' ')|title }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                {% for value in section_data.values() %}
+                                <td>{{ value }}</td>
+                                {% endfor %}
+                            </tr>
+                        </tbody>
+                    </table>
+                {% elif section_data is iterable and section_data is not string %}
+                    <table>
+                        <thead>
+                            <tr>
+                                {% for key in section_data[0].keys() %}
+                                <th>{{ key|replace('_', ' ')|title }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in section_data %}
+                            <tr>
+                                {% for value in item.values() %}
+                                <td>{{ value }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>{{ section_data }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="footer">
+        <p>This report is confidential and intended only for authorized personnel.</p>
+        <p>© {{ current_date.split(' ')[0].split('-')[0] }} Agrimodal AI - All Rights Reserved</p>
+    </div>
+</body>
+</html>

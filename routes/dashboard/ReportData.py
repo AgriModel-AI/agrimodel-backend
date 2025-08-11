@@ -280,15 +280,7 @@ class ReportDataResource(Resource):
         overall_accuracy = sum(item["accuracy"] for item in model_performance_data) / len(model_performance_data) if model_performance_data else 0
         best_model = max(model_performance_data, key=lambda x: x["accuracy"])["version"] if model_performance_data else "None"
         total_ratings = sum(item["totalRatings"] for item in model_performance_data)
-        
-        # Find strongest and weakest disease performance - FIXED
-        if disease_performance_data:
-            strongest_disease = max(disease_performance_data, key=lambda x: x["detectionAccuracy"])["disease"]
-            weakest_disease = min(disease_performance_data, key=lambda x: x["detectionAccuracy"])["disease"] if len(disease_performance_data) > 1 else "None"
-        else:
-            strongest_disease = "None"
-            weakest_disease = "None"
-        
+                
         return jsonify({
             "title": "Quarterly AI Model Performance Assessment",
             "dateRange": {
@@ -298,9 +290,7 @@ class ReportDataResource(Resource):
             "summary": {
                 "overallAccuracy": round(overall_accuracy, 2),
                 "bestModel": best_model,
-                "totalRatings": total_ratings,
-                "strongestDisease": strongest_disease,
-                "weakestDisease": weakest_disease
+                "totalRatings": total_ratings
             },
             "tables": {
                 "modelPerformance": model_performance_data,
