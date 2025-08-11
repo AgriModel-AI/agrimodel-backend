@@ -144,44 +144,50 @@ class SupportResource(Resource):
                 support_request.updatedAt = datetime.utcnow()
 
                 # Send email and in-app notification based on the status
-                if status_enum != SupportRequestStatus.CLOSED:
+                if status_enum == SupportRequestStatus.IN_PROGRESS:
                     send_email_notification(user.email, status_enum)
-                    send_notification_to_user(user.userId, f"Your support request status has been updated to {status_enum.value}.")
+                    send_notification_to_user(user.userId, f"Your support request status has been updated to {status_enum.value.replace('_', ' ').lower().title()}.")
 
-                elif status_enum == SupportRequestStatus.CLOSED:
+                elif status_enum != SupportRequestStatus.IN_PROGRESS:
                     if not title or not description:
-                        return {"message": "Title and description are required for closing a request."}, 400
+                        return {"message": "Title and description are required."}, 400
 
                     # Send a detailed email for the "CLOSED" status
                     send_email_notification(user.email, status_enum, title, description)
                     send_notification_to_user(user.userId, "Your support request has been closed. Check your email for more details.")
 
                 notification = Notification(
-                    message=f"Support Request With ID: {support_request_id}, Status Updated: {status_enum}",
+                    message=(
+                        f"Support Request With ID: {support_request_id}, "
+                        f"Status Updated: {status_enum.value.replace('_', ' ').lower().title()}"
+                    ),
                     userId=user.userId,
                     timestamp=datetime.utcnow()
                 )
+
                 db.session.add(notification)
                 db.session.commit()
             return {"message": "Support request updated successfully."}, 200
 
         except Exception as e:
+            print(e)
             db.session.rollback()
             return {"message": str(e)}, 500
 
 # Helper function to send an email notification
 def send_email_notification(email, status, title=None, description=None):
-    if status == SupportRequestStatus.CLOSED:
+    status_text = status.value.replace('_', ' ').lower().title()
+    if status != SupportRequestStatus.IN_PROGRESS:
         msg = Message(
-            subject="Support Request Closed",
+            subject=f"Support Request Status Updated: {status_text}",
             recipients=[email],
-            body=f"Your support request has been closed.\n\nTitle: {title}\nDescription: {description}"
+            body=f"Your support request has been {status_text}.\n\nTitle: {title}\nDescription: {description}"
         )
     else:
         msg = Message(
-            subject=f"Support Request Status Updated: {status.value}",
+            subject=f"Support Request Status Updated: {status_text}",
             recipients=[email],
-            body=f"Your support request status has been updated to {status.value}."
+            body=f"Your support request status has been updated to {status_text}."
         )
     mail.send(msg)
 

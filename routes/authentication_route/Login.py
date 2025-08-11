@@ -25,11 +25,11 @@ class LoginResource(Resource):
         user = User.query.filter_by(email=email).first()
         
         if not user:
-            abort(400, message="Invalid credentials: user not found.")
+            abort(400, message="Invalid credentials: account not found.")
 
         # Check password validity
         if not check_password_hash(user.password, password):
-            abort(400, message="Invalid credentials: password is incorrect.")
+            abort(400, message="Invalid credentials")
 
         # Check if the user is verified and not blocked
         if not user.isVerified:
@@ -79,11 +79,11 @@ class LoginClientResource(Resource):
         user = User.query.filter_by(email=email).first()
         
         if not user:
-            abort(400, message="Invalid credentials: user not found.")
+            abort(400, message="Invalid credentials: account not found.")
                 
         # Check password validity
         if not check_password_hash(user.password, password):
-            abort(400, message="Invalid credentials: password is incorrect.")
+            abort(400, message="Invalid credentials")
 
         # Check if the user is verified and not blocked
         if not user.isVerified:
