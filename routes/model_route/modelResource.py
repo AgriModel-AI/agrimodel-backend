@@ -33,7 +33,7 @@ class DownloadModelResource(Resource):
         return send_file(
             file_path,
             as_attachment=True,
-            download_name=f"plant_disease_model_v{model.version}.tflite"
+            download_name=f"plant_disease_model_v{model.version}.pt"
         )
 
 class RateModelResource(Resource):
@@ -121,7 +121,7 @@ class AdminModelResource(Resource):
     
     @jwt_required()
     def post(self):
-        """Create a new model version (with .tflite + classes.json)"""
+        """Create a new model version (with .pt + classes.json)"""
         if not is_admin():
             return {"message": "Admins only: You are not authorized to perform this action."}, 403
         
@@ -130,13 +130,22 @@ class AdminModelResource(Resource):
 
         if not model_file:
             abort(400, message="No model file provided.")
+        
+        # Check if the file has a .pt extension
+        file_extension = os.path.splitext(model_file.filename)[1].lower()
+        if file_extension != '.pt':
+            return {"message": "Invalid file format. Only PyTorch model files (.pt) are accepted."}, 400
 
         version = data.get('version')
         if not version:
             abort(400, message="Model version is required.")
+            
+        existing_model = ModelVersion.query.filter_by(version=version).first()
+        if existing_model:
+            return {"message": f"A model with version {version} already exists."}, 400
 
         # Generate file names and paths
-        model_filename = f"plant_disease_model_v{version}.tflite"
+        model_filename = f"plant_disease_model_v{version}.pt"
         model_path = os.path.join(current_app.config['MODEL_STORAGE'], model_filename)
 
         # Save files

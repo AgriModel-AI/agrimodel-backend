@@ -6,7 +6,7 @@ from datetime import datetime
 from flask import jsonify, request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import Crop, DiagnosisResult, Disease, Notification, UserDetails, db
+from models import Crop, DiagnosisResult, Disease, ModelVersion, Notification, UserDetails, db
 from sqlalchemy import func
 # import cloudinary.uploader
 import cloudinary.uploader
@@ -109,7 +109,15 @@ class PredictionResource(Resource):
             # Get user identity
             user_identity = get_jwt_identity()
             userId = int(user_identity["userId"])
-            modelVersion = "1.0.2"
+            
+            # Get latest active model version
+            latest_model = ModelVersion.query.filter_by(isActive=True).order_by(ModelVersion.releaseDate.desc()).first()
+            if latest_model:
+                modelVersion = latest_model.version
+            else:
+                # Fallback to default version if no active model is found
+                logger.warning("No active model found, using default version")
+                modelVersion = "1.0.0"
 
             # Validate image file
             if 'image' not in request.files:
