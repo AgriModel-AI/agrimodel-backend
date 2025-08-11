@@ -40,6 +40,10 @@ class SupportResource(Resource):
             return {"message": "Invalid support request type provided."}, 400
         
         try:
+            
+            user = User.query.get(user_id)
+            if not user:
+                return {"message": "User not found."}, 404
             # Create a new support request entry
             support_request = SupportRequest(
                 userId=user_id,
@@ -59,7 +63,7 @@ class SupportResource(Resource):
             # Create notifications for each admin user
             for admin in admin_users:
                 notification = Notification(
-                    message=f"New support request from User ID {user_id}: {subject}",
+                    message=f"New support request from {user.username}: {subject}",
                     userId=admin.userId,
                     timestamp=datetime.utcnow()
                 )
