@@ -1,0 +1,137 @@
+{
+    "post": {
+      "tags": ["Authentication"],
+      "summary": "User signup",
+      "description": "Registration endpoint for new users with email, username, password, and phone number",
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["email", "username", "password", "phone_number"],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "description": "User's email address"
+                },
+                "username": {
+                  "type": "string",
+                  "description": "Unique username for the account"
+                },
+                "password": {
+                  "type": "string",
+                  "minLength": 8,
+                  "description": "Password must be at least 8 characters long"
+                },
+                "phone_number": {
+                  "type": "string",
+                  "pattern": "\\+250\\d{9}",
+                  "description": "Phone number in the format +250700000000"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["farmer", "admin"],
+                  "default": "farmer",
+                  "description": "User role (defaults to 'farmer' if not specified)"
+                }
+              }
+            },
+            "examples": {
+              "standard": {
+                "value": {
+                  "email": "user@example.com",
+                  "username": "johnsmith",
+                  "password": "securePassword123",
+                  "phone_number": "+250700000000",
+                  "role": "farmer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "User created successfully",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "example": "User created successfully. A verification code has been sent to your email."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Invalid request or validation error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  }
+                }
+              },
+              "examples": {
+                "missing_field": {
+                  "value": {
+                    "message": "Field 'email' is required."
+                  }
+                },
+                "invalid_email": {
+                  "value": {
+                    "message": "Invalid email format"
+                  }
+                },
+                "weak_password": {
+                  "value": {
+                    "message": "Password must be at least 8 characters long."
+                  }
+                },
+                "invalid_phone": {
+                  "value": {
+                    "message": "Invalid phone number format. It should be in the format: +250700000000"
+                  }
+                },
+                "duplicate_data": {
+                  "value": {
+                    "message": "Email, phone number, or username already in use."
+                  }
+                },
+                "invalid_role": {
+                  "value": {
+                    "message": "Invalid role specified. Allowed roles are 'farmer' and 'admin'."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "Server error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "example": "Internal server error. Please try again later."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }

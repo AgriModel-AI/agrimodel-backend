@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "My API",
-    "description": "API Documentation for My Application",
+    "title": "AGRI-MODAL APPLICATION API",
+    "description": "API Documentation for AGRI-MODAL",
     "version": "1.0.0"
   },
   "servers": [
@@ -27,7 +27,15 @@
   "paths": {
     "/auth/login": { "$ref": "./auth/login.json" },
     "/auth/client/login": { "$ref": "./auth/loginClient.json" },
+    "/auth/signup" : { "$ref": "./auth/signup.json" },
     "/auth/refresh-token": { "$ref": "./auth/refresh.json" },
-    "/communities": { "$ref": "./community/community.json" }
+    "/communities" : { "$ref": "./community/allCommunitiesList.json" },
+    "/communities/{communityId}": { "$ref": "./community/community.json" },
+    "/communities/user-community": { "$ref": "./community/userCommunityList.json" },
+    "/communities/user-community/{communityId}" : { "$ref": "./community/userCommunity.json" },
+    "/predict" : { "$ref": "./diagnosis/diagnosticResult.json" },
+    "/support" : { "$ref": "./support/requestSupport.json" }
+   
+
   }
 }
