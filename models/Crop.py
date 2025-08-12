@@ -9,7 +9,7 @@ class Crop(db.Model):
     name = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text)
     growingConditions = db.Column(db.Text)
-    harvestTime = db.Column(db.String(120))
+    harvestTime = db.Column(db.Text)
     images = db.Column(db.Text)  # Can store comma-separated URLs
     createdAt = db.Column(db.DateTime, default=datetime.utcnow)
     

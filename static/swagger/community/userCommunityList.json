@@ -1,0 +1,50 @@
+{
+  "tags": [
+    {
+      "name": "User Community",
+      "description": "Operations related to user-community relationships"
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "get": {
+    "tags": ["User Community"],
+    "summary": "Get User Communities",
+    "description": "Retrieves a list of communities the authenticated user has joined.",
+    "security": [{ "BearerAuth": [] }],
+    "parameters": [],
+    "responses": {
+      "200": {
+        "description": "List of joined communities",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/components/schemas/UserCommunity" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserCommunity": {
+        "type": "object",
+        "properties": {
+          "communityId": { "type": "integer", "example": 101 },
+          "name": { "type": "string", "example": "Tech Enthusiasts" },
+          "image": { "type": "string", "example": "https://example.com/community.jpg" },
+          "description": { "type": "string", "example": "A community for tech lovers." },
+          "createdAt": { "type": "string", "format": "date-time", "example": "2024-03-22T12:00:00Z" },
+          "users": { "type": "integer", "example": 150 },
+          "posts": { "type": "integer", "example": 30 },
+          "joined": { "type": "boolean", "example": true }
+        }
+      }
+    }
+  }
+}

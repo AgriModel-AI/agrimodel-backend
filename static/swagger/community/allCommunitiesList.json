@@ -1,0 +1,108 @@
+{
+    "get": {
+  "tags": ["Community"],
+  "summary": "Get all communities",
+  "description": "Retrieve a list of all communities.",
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "responses": {
+    "200": {
+      "description": "Successfully retrieved communities",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "communityId": { "type": "integer" },
+                "name": { "type": "string" },
+                "image": { "type": "string", "format": "uri" },
+                "description": { "type": "string" },
+                "createdBy": {
+                  "type": "object",
+                  "properties": {
+                    "username": { "type": "string" },
+                    "email": { "type": "string", "format": "email" }
+                  }
+                },
+                "createdAt": { "type": "string", "format": "date-time" },
+                "users": { "type": "integer" },
+                "posts": { "type": "integer" }
+              }
+            }
+          },
+          "examples": {
+            "sample": {
+              "summary": "Example response",
+              "value": [
+                {
+                  "communityId": 1,
+                  "name": "Coffee Growers United",
+                  "image": "https://example.com/images/coffee.png",
+                  "description": "A group for coffee farmers to share best practices.",
+                  "createdBy": {
+                    "username": "john_doe",
+                    "email": "john@example.com"
+                  },
+                  "createdAt": "2025-08-12T09:30:00Z",
+                  "users": 150,
+                  "posts": 45
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "401": {
+      "description": "Unauthorized - JWT token missing or invalid"
+    }
+  }
+},
+"post": {
+    "tags": ["Community"],
+    "summary": "Create a new community",
+    "description": "Add a new community with name, description, and image upload.",
+    "security": [
+      {
+        "BearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "multipart/form-data": {
+          "schema": {
+            "type": "object",
+            "required": ["name", "description", "image"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the community"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the community"
+              },
+              "image": {
+                "type": "string",
+                "format": "binary",
+                "description": "Upload an image file"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Community created successfully"
+      }
+    }
+  }
+
+}

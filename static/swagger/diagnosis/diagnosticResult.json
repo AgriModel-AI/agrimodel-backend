@@ -1,0 +1,64 @@
+{
+  "tags": [
+    {
+      "name": "Prediction",
+      "description": "Upload an image to get a disease prediction result"
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "post": {
+    "tags": ["Prediction"],
+    "summary": "Predict Crop Disease from Image",
+    "description": "Uploads an image and returns the prediction result.",
+    "security": [{ "BearerAuth": [] }],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "multipart/form-data": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "image": {
+                "type": "string",
+                "format": "binary",
+                "description": "Image file (jpg, png, gif, etc.)"
+              }
+            },
+            "required": ["image"]
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Prediction successful",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "prediction": { "type": "string", "example": "Blight" },
+                "confidence": { "type": "number", "format": "float", "example": 0.95 }
+              }
+            }
+          }
+        }
+      },
+      "400": { "description": "Invalid input or file type" },
+      "500": { "description": "Internal server error" }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
